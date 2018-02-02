@@ -47,16 +47,11 @@ loop
 	
 	VCMP.f32 S0, S2 ;compare the current index with the min
 	VMRS APSR_nzcv, FPSCR; ;check FP flag for branching
-	VMOVLT.f32 S2, S0 ;save min value into register
-	FMSRLT S6, R3 ;save min index into register
-	FSITOS S6, S6 ;convert int to FP
-	
+	BLLT min_loop	
 	
 	VCMP.f32 S0, S1 ;compare the current index with the max
 	VMRS APSR_nzcv, FPSCR ;check FP flag for branching
-	VMOVGT.f32 S1, S0 ;save max value into register
-	FMSRGT S5, R3 ;save max index into register
-	FSITOS S5, S5 ;convert int to FP
+	BLGT max_loop
 	
 	ADD R3, #1
 	CMP R3, R2 ;compare i to the length of the input array
@@ -72,6 +67,18 @@ loop
 	VSTR.f32 S2, [R1, #12]
 	VSTR.f32 S6, [R1, #16]
 	POP{R4, LR}
+	BX LR
+	
+max_loop
+	VMOV.f32 S1, S0 ;save max value into register
+	FMSR S5, R3 ;save max index into register
+	FSITOS S5, S5 ;convert int to FP
+	BX LR
+	
+min_loop
+	VMOV.f32 S2, S0 ;save min value into register
+	FMSR S6, R3 ;save min index into register
+	FSITOS S6, S6 ;convert int to FP
 	BX LR
 	
 	END

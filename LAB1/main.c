@@ -11,7 +11,7 @@ void cmsis_math(float inputVector[], float outputVector[], uint32_t outputIndex[
 int main()
 {
 	
-	int input_vector[20] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+	int input_vector[100] = {12,21,19,45,34,39,50,52,63,66,83,87,74,92,86,93,99,109,101,115,103,112,117,111,114,113,103,101,117,99,94,102,105,98,85,84,82,88,67,76,67,56,46,45,41,27,31,27,14,12,-1,-7,-6,-20,-14,-17,-28,-41,-42,-57,-46,-51,-56,-72,-69,-84,-79,-84,-90,-92,-88,-96,-87,-90,-86,-86,-86,-98,-96,-98,-82,-77,-80,-68,-67,-58,-62,-62,-62,-47,-38,-40,-41,-32,-28,-19,-10,-2,3,18};
 	
 	int inputLength = sizeof(input_vector)/sizeof(input_vector[0]);
 	int order = 4;
@@ -67,7 +67,7 @@ void FIR_C(int inputVector[], float outputVector[], int inputLength, int outputL
 	int i, j;
 	int inputVariable;
 	
-	float coefficients[5] = {0.1, 0.15, 0.5, 0.15, 0.1};
+	float coefficients[5] = {0.2, 0.2, 0.2, 0.2, 0.2};
 
 	//add the sum of inputVector[0]*coeeficient[0]...inputVector[4]*coefficient[4] and save in outputVector[0]
 	//then repeat for inputVector[1]*coefficient[0]...inputVector[5]*coefficient[4] and save in outputVector[1]
