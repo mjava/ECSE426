@@ -39,11 +39,9 @@ loop
 	VFMA.f32 S4, S0, S0 ;square input value and add to sum
 	
 	CMP R3, #1 ;compare i with 1 to determine if it is in first index
-	ADD R3, #1
+	ADDLT R3, #1 ;increment only if i is less than 1
 	BLT loop   ;if in first index, branch to loop
 	;only reach here if after first iteration
-	
-	SUB R3, #1 	;de-increment the i value by 1
 	
 	VCMP.f32 S0, S2 ;compare the current index with the min
 	VMRS APSR_nzcv, FPSCR; ;check FP flag for branching
@@ -53,7 +51,7 @@ loop
 	VMRS APSR_nzcv, FPSCR ;check FP flag for branching
 	BLGT max_loop
 	
-	ADD R3, #1
+	ADD R3, #1 ;increment i
 	CMP R3, R2 ;compare i to the length of the input array
 	BLT loop ;if i is less than length, re-loop
 
