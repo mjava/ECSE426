@@ -118,21 +118,25 @@ int main(void){
   MX_NVIC_Init();
 
 	HAL_DAC_Start(&hdac, DAC_CHANNEL_1);
-	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 1500);
+	HAL_DAC_SetValue(&hdac, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 000);
 	
   while (1)
   {
-	if(adcTrigger >= ADC_TIMER){
-		adcTrigger = 0;
-		HAL_ADC_Start_IT(&hadc1); 
-	}
-	
-	if(displaySwitchTrigger >= LED_POSITION_TIMER){
-		displaySwitchTrigger = 0;
-		ledPosition++;
-		ledPosition = ledPosition % 4;
-		ledDriver(ledPosition, outputDigits[ledPosition]);
-	}	
+		//ADC interrupt every 50 Hz
+		if(adcTrigger >= ADC_TIMER){
+			adcTrigger = 0;
+			HAL_ADC_Start_IT(&hadc1); 
+		}
+		
+		//update LED display at high frequency
+		if(displaySwitchTrigger >= LED_POSITION_TIMER){
+			displaySwitchTrigger = 0;
+			ledPosition++;
+			//reset to 0 when ledPosition reaches 4
+			ledPosition = ledPosition % 4;
+			//at ledPosition x, display outputDigit[x]
+			ledDriver(ledPosition, outputDigits[ledPosition]);
+		}	
 	}
 }
 
@@ -450,15 +454,17 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	
+		//get converted ADC value
 		adcConversion = HAL_ADC_GetValue(hadc);
 		
+		//send to filter
 		FIR_C(adcConversion, &filterOutput);
 		
-		filterOutput = filterOutput * 3.0 / 4096.0; //12bit conversion
+		filterOutput = filterOutput * 3.0 / 4096.0; //12bit conversion, Vref at 3V
 		
 		c_math(filterOutput, outputVector);
 		
-		digitCalc(outputVector, displayedValue, ledPosition); //value indicator in outputDigit[0], tens in outputDigit[1], tenths in outputDigit[2], hundredths in outputDigit[3]
+		digitCalc(outputVector, displayedValue); //value indicator in outputDigit[0], tens in outputDigit[1], tenths in outputDigit[2], hundredths in outputDigit[3]
 		
 		HAL_ADC_Stop_IT(&hadc1); //disable the ADC interrupt
 }
@@ -466,11 +472,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 void FIR_C(uint32_t input, float *output) {
 	
 	float coefficients[5] = {0.2,0.2,0.2,0.2,0.2};
+	//moving window
 	for(int i = 0; i < 4; i++){
 		x[i] = x[i+1];
 	}
+	//set new input to final value in window
 	x[4] = input;
 	float returnedOutput = 0;
+	//sum of products of coefficient and input
 	for(int i = 0; i < 5; i++){
 		returnedOutput += x[i] * coefficients[4-i];
 	}
@@ -482,11 +491,13 @@ void FIR_C(uint32_t input, float *output) {
 void c_math(float input, float outputVector[]){
 	
 	printf("The input is: %f \n", input);
+	//set comparing variable to input only on first math loop
 	if(mathCounter == 0){
 		min_value = input;
 		max_value = input;
 		rms_value = input*input;
 	}
+	//compare values to previously set min/max values if not on first math loop
 	else {
 		if(input < min_value){
 			min_value = input;
@@ -497,6 +508,7 @@ void c_math(float input, float outputVector[]){
 		rms_value = rms_value + (input*input);
 	}
 	mathCounter++;
+	//update stored values every 10 seconds
 	if(mathCounter >= 500){
 		mathCounter = 0;
 	}
@@ -512,10 +524,12 @@ void digitCalc(float* outputVector, int value){ 	//where outputVector is {rms, m
 	
 	float temp = outputVector[value];
 	
+	//parse first, second and third digits in calculated value
 	firstDigit = (int) (temp);
 	secondDigit = (int) ((temp - (float)(firstDigit)) * 10.0f);
 	thirdDigit = (int) ((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f);
 	
+	//set digits to output variables
 	outputDigits[0] = value;
 	outputDigits[1] = firstDigit;
 	outputDigits[2] = secondDigit;
