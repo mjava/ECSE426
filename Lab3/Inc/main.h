@@ -72,7 +72,6 @@
 #define COLUMN_2 GPIOD, GPIO_PIN_9
 #define COLUMN_3 GPIOD, GPIO_PIN_10
 
-
 #define PWM_OUTPUT  GPIOC, GPIO_PIN_6
 
 /* ########################## Assert Selection ############################## */

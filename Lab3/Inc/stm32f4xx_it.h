@@ -52,6 +52,9 @@ void EXTI0_IRQHandler(void);
 void ADC_IRQHandler(void);
 void TIM3_IRQHandler(void);
 
+	 
+extern int columnSwitch;
+extern int columnCounter;
 #ifdef __cplusplus
 }
 #endif

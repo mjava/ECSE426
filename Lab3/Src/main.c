@@ -41,6 +41,9 @@
 #include "stm32f4xx_it.h"
 
 
+#define HASH 12
+#define STAR 10
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -56,6 +59,8 @@ TIM_HandleTypeDef htim3;
 
 int voltageInput;
 uint16_t pulseValue;
+int buttonPressed;
+int keypadMatrix[3][4] = {{1,4,7,STAR}, {2,5,8,0},{3,6,9,HASH}};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,8 +76,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* Private function prototypes -----------------------------------------------*/
 
 void pwmSetValue(uint16_t pulseValue);
-void setInput(int buttonPressed);
-int getInput();
+int getKeypadValue(void);
 
 /* USER CODE END PFP */
 
@@ -110,32 +114,19 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
-  MX_TIM3_Init();
+  //MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 	
 	/* enable timer PWM output */
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
   /* USER CODE END 2 */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-		if(pulseValue != 839){
-			pulseValue++;
-		}
-		else{
-			pulseValue = 0;
-		}
-		pwmSetValue(5);
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-
-  }
-  /* USER CODE END 3 */
-
+  while (1){
+		buttonPressed = getKeypadValue();
+		printf("Value is: %d \n", buttonPressed);
+	}
 }
 
 /**
@@ -359,15 +350,15 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : Row_Keypad_1_Pin Row_Keypad_2_Pin Row_Keypad_3_Pin Row_Keypad_4_Pin */
   GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Column_Keypad_1_Pin Column_Keypad_2_Pin Column_Keypad_3_Pin */
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PC7 PC10 PC12 */
@@ -457,90 +448,79 @@ void assert_failed(uint8_t* file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
-void scanKeypad(){
-	
-	int buttonPressed;
-	
-	if(columnSwitch == 0){
-		HAL_GPIO_WritePin(COLUMN_1, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(COLUMN_2, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(COLUMN_3, GPIO_PIN_RESET);
-	}
-	else if(columnSwitch == 1){
-		HAL_GPIO_WritePin(COLUMN_1, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(COLUMN_2, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(COLUMN_3, GPIO_PIN_RESET);
-	}
-	else if(columnSwitch == 2){
-		HAL_GPIO_WritePin(COLUMN_1, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(COLUMN_2, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(COLUMN_3, GPIO_PIN_SET);
-	}
-	
-	if(HAL_GPIO_ReadPin(ROW_1) == SET){
-		if(columnSwitch == 0){
-			buttonPressed = 1;
-		}
-		else if(columnSwitch == 1){
-			buttonPressed = 2;
-		}
-		else if(columnSwitch == 2){
-			buttonPressed = 3;
-		}
-		else 
-			buttonPressed = -1;
-	}
-	else if(HAL_GPIO_ReadPin(ROW_2) == SET){
-		if(columnSwitch == 0){
-			buttonPressed = 4;
-		}
-		else if(columnSwitch == 1){
-			buttonPressed = 5;
-		}
-		else if(columnSwitch == 2){
-			buttonPressed = 6;
-		}
-		else 
-			buttonPressed = -1;
-	}
-	else if(HAL_GPIO_ReadPin(ROW_3) == SET){
-		if(columnSwitch == 0){
-			buttonPressed = 7;
-		}
-		else if(columnSwitch == 1){
-			buttonPressed = 8;
-		}
-		else if(columnSwitch == 2){
-			buttonPressed = 9;
-		}
-		else 
-			buttonPressed = -1;
-	}
-	else if(HAL_GPIO_ReadPin(ROW_4) == SET){
-		if(columnSwitch == 0){
-			buttonPressed = 10;		//* is 10
-		}
-		else if(columnSwitch == 1){
-			buttonPressed = 0;
-		}
-		else if(columnSwitch == 2){
-			buttonPressed = 12;  //# is 12
-		}
-		else 
-			buttonPressed = -1;
-	}
-	
-	setInput(buttonPressed);
-	
-	
-}
 
-void setInput(int buttonPressed){
-	voltageInput = buttonPressed;
-}
+int getKeypadValue(){
+	
+	int valueReturned = -1;
+	
+	static int counter = 0;
 
-int getInput(){
-	return voltageInput;
+	if (counter == 0){
+		
+		HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
+		HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+		
+		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
+			{valueReturned = keypadMatrix[0][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
+			{valueReturned = keypadMatrix[1][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
+			{valueReturned = keypadMatrix[2][counter];}
+		counter = 1;
+		}
+	
+	else if (counter == 1) {
+		
+		HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_2, GPIO_PIN_SET );
+		HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+		
+		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
+			{valueReturned = keypadMatrix[0][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
+			{valueReturned = keypadMatrix[1][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
+			{valueReturned = keypadMatrix[2][counter];}	
+			counter = 2;
+	}
+	
+		else if (counter == 2){
+		
+		HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_3, GPIO_PIN_SET );
+		HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+		
+		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
+			{valueReturned = keypadMatrix[0][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
+			{valueReturned = keypadMatrix[1][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
+			{valueReturned = keypadMatrix[2][counter];}
+	}
+		
+		else if (counter == 3){
+		HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+		HAL_GPIO_WritePin(ROW_4, GPIO_PIN_SET );
+		
+		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
+			{valueReturned = keypadMatrix[0][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
+			{valueReturned = keypadMatrix[1][counter];}
+		if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
+			{valueReturned = keypadMatrix[2][counter];}
+	} 
+		counter++;
+	if(counter > 3){
+		counter = 0;
+}
+	
+return valueReturned;
 }
 /**
   * @}

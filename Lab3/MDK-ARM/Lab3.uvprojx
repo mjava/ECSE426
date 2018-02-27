@@ -490,6 +490,11 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
+            <File>
+              <FileName>fput_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\LAB1\fput_debug.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

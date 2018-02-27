@@ -43,6 +43,9 @@
 extern ADC_HandleTypeDef hadc1;
 extern TIM_HandleTypeDef htim3;
 
+int columnCounter = 0;
+int columnSwitch  = 0;
+
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
