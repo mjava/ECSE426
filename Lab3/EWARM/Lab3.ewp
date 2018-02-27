@@ -301,6 +301,13 @@
           <state>$PROJ_DIR$/../Middlewares/ST/STM32_USB_Host_Library/Class/CDC/Inc</state>
           <state>$PROJ_DIR$/../Drivers/CMSIS/Device/ST/STM32F4xx/Include</state>
           <state>$PROJ_DIR$/../Drivers/CMSIS/Include</state>
+          <state />
+          <state />
+          <state />
+          <state />
+          <state />
+          <state />
+          <state />
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1052,19 +1059,7 @@
         </excluded>
       </file>
       <file>
-        <name>$PROJ_DIR$/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2s_ex.c</name>
-        <excluded>
-          <configuration />
-        </excluded>
-      </file>
-      <file>
         <name>$PROJ_DIR$/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c</name>
-        <excluded>
-          <configuration />
-        </excluded>
-      </file>
-      <file>
-        <name>$PROJ_DIR$/../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2s.c</name>
         <excluded>
           <configuration />
         </excluded>
