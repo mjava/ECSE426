@@ -124,8 +124,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1){
-		buttonPressed = getKeypadValue();
-		printf("Value is: %d \n", buttonPressed);
+		//buttonPressed = getKeypadValue();
+		//printf("Value is: %d \n", buttonPressed);
+		pwmSetValue(5);
 	}
 }
 
