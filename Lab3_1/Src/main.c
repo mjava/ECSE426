@@ -57,6 +57,7 @@ TIM_HandleTypeDef htim3;
 /* Private variables ---------------------------------------------------------*/
 uint32_t adcConversion = 0;
 int buttonPressed;
+int buttonPressedOld;
 int keypadMatrix[3][4] = {{1,4,7,10}, {2,5,8,0},{3,6,9,11}};
 int state = 0;
 //int modeFlag;
@@ -65,11 +66,20 @@ float mathOutput;
 int x[5] = {0};
 float rms_value = 0;
 float filterOutput;
-
+int keyReadTrigger; //debouncing for keypad
 int displaySwitchTrigger; //triggers the switch between LEDs
 int ledPosition;
 int modeFlag;
 int outputDigits[4];
+int keyValid = 0;
+int sleepKey = 0;
+int restartKey = 0;
+int holdCount = 0;
+int sleepCount = 0;
+float controllerTarget;
+float error;
+int pulseWidth;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,10 +99,7 @@ int getKeypadValue(void);
 void valueParse(float mathOutput);
 void c_math(float input);
 void FIR_C(uint32_t input, float* filterOutput);
-int HASH_pressed_awake(int value);
-int STAR_pressed_sleep(int value);
-int STAR_pressed_restart(int value);
-void pwm_controller(int input, int output);
+void pwmController(float input, float output);
 
 	
 /* USER CODE END PFP */
@@ -145,12 +152,13 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {//		
-		buttonPressed = getKeypadValue();
+  {	
 		switch(state) {
 			case 0: //sleep mode
 				modeFlag = 0;
-				if(HASH_pressed_awake(getKeypadValue())) {
+				if(getKeypadValue() == 11 && keyValid && sleepKey) {
+					sleepKey = 0;
+					keyValid = 0;
 					state = 1;
 				}			
 				break;
@@ -160,10 +168,14 @@ int main(void)
 				outputDigits[1] =0;
 				outputDigits[2] =0;
 				outputDigits[3] =0;
-				if(getKeypadValue()>-1 && getKeypadValue() < 10) {
+				if(getKeypadValue()>-1 && getKeypadValue() < 10 && keyValid) {
+					buttonPressed = getKeypadValue();
+					keyValid = 0;
 					state = 2;
 				}
-				else if(STAR_pressed_sleep(getKeypadValue())) {
+				else if(getKeypadValue() == 10 && keyValid && sleepKey) {
+					sleepKey = 0;
+					keyValid = 0;
 					state = 0;
 				}
 				break;
@@ -172,51 +184,69 @@ int main(void)
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] =0;
-				outputDigits[3] = getKeypadValue();
-				if(STAR_pressed_sleep(getKeypadValue())) {
+				outputDigits[3] = buttonPressed;
+				if(getKeypadValue() == 10 && keyValid && sleepKey) {
+					sleepKey = 0;
+					keyValid = 0;
 					state = 0;
 				}
-				else if(STAR_pressed_restart(getKeypadValue())) {
+				else if(getKeypadValue() == 10 && keyValid && restartKey) {
+					restartKey = 0;
+					keyValid = 0;
 					state = 1;
 				}
-				else if(getKeypadValue() == 10) {
+				else if(getKeypadValue() == 10 && keyValid) {
+					keyValid = 0;
 					state = 1;
+				}
+				else if(getKeypadValue()>-1 && getKeypadValue() < 10 && keyValid) {
+					buttonPressedOld = buttonPressed;
+					buttonPressed = getKeypadValue();
+					keyValid = 0;
+					state = 3;
 				}
 				break;
 			case 3: //second digit
 				modeFlag = 1;
 				outputDigits[0] =0;
 				outputDigits[1] =0;
-				outputDigits[2] = outputDigits[3];
-				outputDigits[3] = getKeypadValue();
-				if(STAR_pressed_sleep(getKeypadValue())) {
+				outputDigits[2] = buttonPressedOld;
+				outputDigits[3] = buttonPressed;
+				if(getKeypadValue() == 10 && keyValid && sleepKey) {
+					keyValid = 0;
+					sleepKey = 0;
 					state = 0;
 				}
-				else if(STAR_pressed_restart(getKeypadValue())) {
+				else if(getKeypadValue() == 10 && keyValid && restartKey) {
+					keyValid = 0;
+					restartKey = 0;
 					state = 1;
 				}
-				else if(getKeypadValue() == 10) {
+				else if(getKeypadValue() == 10 && keyValid) {
+					buttonPressed = buttonPressedOld;
+					keyValid = 0;
 					state = 2;
 				}
-				else if(getKeypadValue() == 11) {
+				else if(getKeypadValue() == 11 && keyValid) {
+					keyValid = 0;
 					state = 4;
 				}				
 				break;
 			case 4:
-				mathInput = outputDigits[2] + (outputDigits[3]/10.0);
-				valueParse(mathOutput);
-				if(STAR_pressed_sleep(getKeypadValue())) {
+				mathInput = (float) (outputDigits[2] + (outputDigits[3]/10.0));
+				pwmController(mathInput, mathOutput);
+				if(getKeypadValue() == 10 && keyValid && sleepKey) {
+					keyValid = 0;
+					sleepKey = 0;
 					state = 0;
 				}
-				else if(STAR_pressed_restart(getKeypadValue())) {
+				else if(getKeypadValue() == 10 && keyValid && restartKey) {
+					keyValid = 0;
+					sleepKey = 0;
 					state = 1;
 				}		
 				break;
 			}
-			
-				
-		//printf("Value is: %d \n", buttonPressed);
-		//pwmSetValue(4000);
 		
   /* USER CODE END WHILE */
 		//printf("ADC conversion: %d\n",adcConversion);
@@ -533,8 +563,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	filterOutput = filterOutput * 3.0 / 255.0; //8bit conversion, Vref at 3V
 	
 	c_math(filterOutput);
-	
-	pwm_controller(mathInput, mathOutput);
+
 }
 void FIR_C(uint32_t input, float *output) {
 	
@@ -551,13 +580,11 @@ void FIR_C(uint32_t input, float *output) {
 		returnedOutput += x[i] * coefficients[4-i];
 	}
 	*output = returnedOutput;
-		//printf("The input of the filter is: %d \n", input);
-		//printf("The output of the filter is: %f \n", *output);
 }
 
 void c_math(float input){
 	static int mathCounter;
-	printf("The input is: %f \n", input);
+
 	//set comparing variable to input only on first math loop
 	
 	rms_value += input*input;
@@ -778,6 +805,20 @@ void pwmSetValue(uint16_t pulseValue) {
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);  
 }
 
+void pwmController(float input, float output) {
+	
+	controllerTarget = input;
+	error = input - output;  //can be positive or negative 
+	
+	float pValue = 100.0f;
+	
+	while(error >= 0.1*controllerTarget) {
+	
+		pulseWidth += (int) (error * pValue);
+		pwmSetValue(pulseWidth);
+		valueParse(mathOutput);
+	}
+}
 /* USER CODE END 4 */
 
 /**

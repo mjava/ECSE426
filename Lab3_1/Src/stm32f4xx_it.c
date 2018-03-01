@@ -37,11 +37,23 @@
 
 /* USER CODE BEGIN 0 */
 void ledDriver(int ledPos, int number, int modeFlag);
+int getKeypadValue(void);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern ADC_HandleTypeDef hadc1;
 extern TIM_HandleTypeDef htim3;
+
+extern int displaySwitchTrigger; //triggers the switch between LEDs
+extern int ledPosition;
+extern int modeFlag;
+extern int outputDigits[4];
+extern int keyValid;
+extern int sleepKey;
+extern int keyReadTrigger;
+extern int restartKey;
+extern int holdCount;
+extern int sleepCount;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -66,7 +78,30 @@ void SysTick_Handler(void)
 			ledPosition = ledPosition % 4;
 			//at ledPosition x, display outputDigit[x]
 			ledDriver(ledPosition, outputDigits[ledPosition], modeFlag);
-		}	
+	}
+		
+	if(getKeypadValue()>-1 && getKeypadValue() < 12) {
+		keyReadTrigger++;
+		
+		if(keyReadTrigger >= KEY_TIMER) { //regular button press
+			keyValid = 1;
+			if(getKeypadValue() == 10 || getKeypadValue() == 11) {
+				holdCount++;
+				sleepCount++;
+				if(sleepCount >= KEY_TIMER*3){  //restart input
+					sleepKey = 1;
+					sleepCount = 0;
+				} 
+				if(holdCount >= KEY_TIMER*2) { //sleep mode
+					restartKey = 1;
+					holdCount = 0;
+				}				
+			} 			
+			keyReadTrigger = 0;
+		} else {
+				keyValid = 0;
+		}
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 

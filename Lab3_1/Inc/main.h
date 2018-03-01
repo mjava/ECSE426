@@ -74,6 +74,7 @@
 #define PWM_OUTPUT  GPIOC, GPIO_PIN_6
 
 #define LED_POSITION_TIMER 5
+#define KEY_TIMER 60
 
 /* ########################## Assert Selection ############################## */
 /**
