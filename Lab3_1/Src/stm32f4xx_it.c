@@ -36,7 +36,7 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+void ledDriver(int ledPos, int number, int modeFlag);
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -57,8 +57,16 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   HAL_SYSTICK_IRQHandler();
+	displaySwitchTrigger++;
   /* USER CODE BEGIN SysTick_IRQn 1 */
-
+	if(displaySwitchTrigger >= LED_POSITION_TIMER){
+			displaySwitchTrigger = 0;
+			ledPosition++;
+			//reset to 0 when ledPosition reaches 4
+			ledPosition = ledPosition % 4;
+			//at ledPosition x, display outputDigit[x]
+			ledDriver(ledPosition, outputDigits[ledPosition], modeFlag);
+		}	
   /* USER CODE END SysTick_IRQn 1 */
 }
 

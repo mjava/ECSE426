@@ -49,44 +49,31 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define Cathode_1_Pin GPIO_PIN_7
-#define Cathode_1_GPIO_Port GPIOE
-#define Cathode_2_Pin GPIO_PIN_8
-#define Cathode_2_GPIO_Port GPIOE
-#define Cathode_3_Pin GPIO_PIN_9
-#define Cathode_3_GPIO_Port GPIOE
-#define Cathode_4_Pin GPIO_PIN_10
-#define Cathode_4_GPIO_Port GPIOE
-#define Segment_A_Pin GPIO_PIN_11
-#define Segment_A_GPIO_Port GPIOE
-#define Segment_B_Pin GPIO_PIN_12
-#define Segment_B_GPIO_Port GPIOE
-#define Segment_C_Pin GPIO_PIN_13
-#define Segment_C_GPIO_Port GPIOE
-#define Segment_D_Pin GPIO_PIN_14
-#define Segment_D_GPIO_Port GPIOE
-#define Segment_E_Pin GPIO_PIN_15
-#define Segment_E_GPIO_Port GPIOE
-#define Segment_F_Pin GPIO_PIN_10
-#define Segment_F_GPIO_Port GPIOB
-#define Segment_G_Pin GPIO_PIN_11
-#define Segment_G_GPIO_Port GPIOB
-#define Row_Keypad_1_Pin GPIO_PIN_12
-#define Row_Keypad_1_GPIO_Port GPIOB
-#define Row_Keypad_2_Pin GPIO_PIN_13
-#define Row_Keypad_2_GPIO_Port GPIOB
-#define Row_Keypad_3_Pin GPIO_PIN_14
-#define Row_Keypad_3_GPIO_Port GPIOB
-#define Row_Keypad_4_Pin GPIO_PIN_15
-#define Row_Keypad_4_GPIO_Port GPIOB
-#define Column_Keypad_1_Pin GPIO_PIN_8
-#define Column_Keypad_1_GPIO_Port GPIOD
-#define Column_Keypad_2_Pin GPIO_PIN_9
-#define Column_Keypad_2_GPIO_Port GPIOD
-#define Column_Keypad_3_Pin GPIO_PIN_10
-#define Column_Keypad_3_GPIO_Port GPIOD
-#define PWM_OUTPUT_Pin GPIO_PIN_6
-#define PWM_OUTPUT_GPIO_Port GPIOC
+#define CATHODE_1 GPIOE, GPIO_PIN_7
+#define CATHODE_2 GPIOE, GPIO_PIN_8
+#define CATHODE_3 GPIOE, GPIO_PIN_9
+#define CATHODE_4 GPIOE, GPIO_PIN_10
+
+#define SEGMENT_A GPIOE, GPIO_PIN_11
+#define SEGMENT_B GPIOE, GPIO_PIN_12
+#define SEGMENT_C GPIOE, GPIO_PIN_13
+#define SEGMENT_D GPIOE, GPIO_PIN_14
+#define SEGMENT_E GPIOE, GPIO_PIN_15
+#define SEGMENT_F GPIOB, GPIO_PIN_10
+#define SEGMENT_G GPIOB, GPIO_PIN_11
+
+#define ROW_1 GPIOB, GPIO_PIN_12
+#define ROW_2 GPIOB, GPIO_PIN_13
+#define ROW_3 GPIOB, GPIO_PIN_14
+#define ROW_4 GPIOB, GPIO_PIN_15
+
+#define COLUMN_1 GPIOD, GPIO_PIN_8
+#define COLUMN_2 GPIOD, GPIO_PIN_9
+#define COLUMN_3 GPIOD, GPIO_PIN_10
+
+#define PWM_OUTPUT  GPIOC, GPIO_PIN_6
+
+#define LED_POSITION_TIMER 5
 
 /* ########################## Assert Selection ############################## */
 /**

@@ -38,9 +38,12 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_tim.h"
+#include "math.h"
 
 /* USER CODE BEGIN Includes */
+
+#define HASH 10
+#define STAR 12
 
 /* USER CODE END Includes */
 
@@ -53,13 +56,27 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 uint32_t adcConversion = 0;
+int buttonPressed;
+int keypadMatrix[3][4] = {{1,4,7,10}, {2,5,8,0},{3,6,9,11}};
+int state = 0;
+//int modeFlag;
+float mathInput;
+float mathOutput;
+int x[5] = {0};
+float rms_value = 0;
+float filterOutput;
+
+int displaySwitchTrigger; //triggers the switch between LEDs
+int ledPosition;
+int modeFlag;
+int outputDigits[4];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_TIM2_Init(void);
+//static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -68,6 +85,16 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void pwmSetValue(uint16_t pulseValue);
+int getKeypadValue(void);
+void valueParse(float mathOutput);
+void c_math(float input);
+void FIR_C(uint32_t input, float* filterOutput);
+int HASH_pressed_awake(int value);
+int STAR_pressed_sleep(int value);
+int STAR_pressed_restart(int value);
+void pwm_controller(int input, int output);
+
+	
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -104,24 +131,98 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
-	MX_TIM2_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-
+	
+	/* Start timer for PWM generation */
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+	/* Start ADC interrupt triggered by timer */
+	HAL_ADC_Start_IT(&hadc1);
 
   /* USER CODE END 2 */
+	state = 1;
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
-  {		
-		pwmSetValue(50);
+  {//		
+		buttonPressed = getKeypadValue();
+		switch(state) {
+			case 0: //sleep mode
+				modeFlag = 0;
+				if(HASH_pressed_awake(getKeypadValue())) {
+					state = 1;
+				}			
+				break;
+			case 1: //awake mode
+				modeFlag = 1;
+				outputDigits[0] =0;
+				outputDigits[1] =0;
+				outputDigits[2] =0;
+				outputDigits[3] =0;
+				if(getKeypadValue()>-1 && getKeypadValue() < 10) {
+					state = 2;
+				}
+				else if(STAR_pressed_sleep(getKeypadValue())) {
+					state = 0;
+				}
+				break;
+			case 2: //first digit
+				modeFlag = 1;
+				outputDigits[0] =0;
+				outputDigits[1] =0;
+				outputDigits[2] =0;
+				outputDigits[3] = getKeypadValue();
+				if(STAR_pressed_sleep(getKeypadValue())) {
+					state = 0;
+				}
+				else if(STAR_pressed_restart(getKeypadValue())) {
+					state = 1;
+				}
+				else if(getKeypadValue() == 10) {
+					state = 1;
+				}
+				break;
+			case 3: //second digit
+				modeFlag = 1;
+				outputDigits[0] =0;
+				outputDigits[1] =0;
+				outputDigits[2] = outputDigits[3];
+				outputDigits[3] = getKeypadValue();
+				if(STAR_pressed_sleep(getKeypadValue())) {
+					state = 0;
+				}
+				else if(STAR_pressed_restart(getKeypadValue())) {
+					state = 1;
+				}
+				else if(getKeypadValue() == 10) {
+					state = 2;
+				}
+				else if(getKeypadValue() == 11) {
+					state = 4;
+				}				
+				break;
+			case 4:
+				mathInput = outputDigits[2] + (outputDigits[3]/10.0);
+				valueParse(mathOutput);
+				if(STAR_pressed_sleep(getKeypadValue())) {
+					state = 0;
+				}
+				else if(STAR_pressed_restart(getKeypadValue())) {
+					state = 1;
+				}		
+				break;
+			}
+			
+				
+		//printf("Value is: %d \n", buttonPressed);
+		//pwmSetValue(4000);
 		
   /* USER CODE END WHILE */
-		adcConversion = HAL_ADC_GetValue(&hadc1);
+		//printf("ADC conversion: %d\n",adcConversion);
   /* USER CODE BEGIN 3 */
-		HAL_ADC_Stop(&hadc1);
+		
+
   }
   /* USER CODE END 3 */
 
@@ -198,8 +299,8 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ScanConvMode = DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISINGFALLING;
-  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISINGFALLING; /*set to trigger on rising and falling so frequency of ADC sampling is twice the frequency of the PWM generation */
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T3_TRGO; /*triggered by Timer 3 event */
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
   hadc1.Init.DMAContinuousRequests = DISABLE;
@@ -221,38 +322,7 @@ static void MX_ADC1_Init(void)
 
 }
 
-static void MX_TIM2_Init(void)
-{
 
-  TIM_MasterConfigTypeDef sMasterConfig;
-  TIM_OC_InitTypeDef sConfigOC;
-
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 0;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  if (HAL_TIM_OC_Init(&htim2) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-}
 /* TIM3 init function */
 static void MX_TIM3_Init(void)
 {
@@ -264,7 +334,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 8399;
+  htim3.Init.Period = 8399; /* gives frequency of 10 kHz by: 84 MHz/10 kHz - 1 = 8399 */
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
@@ -287,7 +357,7 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE; /*triggers on update event*/
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
   {
@@ -348,13 +418,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, Cathode_1_Pin|Cathode_2_Pin|Cathode_3_Pin|Cathode_4_Pin 
-                          |Segment_A_Pin|Segment_B_Pin|Segment_C_Pin|Segment_D_Pin 
-                          |Segment_E_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10 
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
+                          |GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Segment_F_Pin|Segment_G_Pin, GPIO_PIN_RESET);
-
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10|GPIO_PIN_11, GPIO_PIN_RESET);
+	
   /*Configure GPIO pin : PC3 */
   GPIO_InitStruct.Pin = GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -388,31 +458,32 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : Cathode_1_Pin Cathode_2_Pin Cathode_3_Pin Cathode_4_Pin 
                            Segment_A_Pin Segment_B_Pin Segment_C_Pin Segment_D_Pin 
                            Segment_E_Pin */
-  GPIO_InitStruct.Pin = Cathode_1_Pin|Cathode_2_Pin|Cathode_3_Pin|Cathode_4_Pin 
-                          |Segment_A_Pin|Segment_B_Pin|Segment_C_Pin|Segment_D_Pin 
-                          |Segment_E_Pin;
+  GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10 
+                          |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
+                          |GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Segment_F_Pin Segment_G_Pin */
-  GPIO_InitStruct.Pin = Segment_F_Pin|Segment_G_Pin;
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Row_Keypad_1_Pin Row_Keypad_2_Pin Row_Keypad_3_Pin Row_Keypad_4_Pin */
-  GPIO_InitStruct.Pin = Row_Keypad_1_Pin|Row_Keypad_2_Pin|Row_Keypad_3_Pin|Row_Keypad_4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : Column_Keypad_1_Pin Column_Keypad_2_Pin Column_Keypad_3_Pin */
-  GPIO_InitStruct.Pin = Column_Keypad_1_Pin|Column_Keypad_2_Pin|Column_Keypad_3_Pin;
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PC7 PC10 PC12 */
@@ -451,13 +522,248 @@ static void MX_GPIO_Init(void)
 
 }
 
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
-//	
-
-//	
-//}
-
 /* USER CODE BEGIN 4 */
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	
+	adcConversion = HAL_ADC_GetValue(hadc);
+	
+	FIR_C(adcConversion, &filterOutput);
+		
+	filterOutput = filterOutput * 3.0 / 255.0; //8bit conversion, Vref at 3V
+	
+	c_math(filterOutput);
+	
+	pwm_controller(mathInput, mathOutput);
+}
+void FIR_C(uint32_t input, float *output) {
+	
+	float coefficients[5] = {0.2,0.2,0.2,0.2,0.2};
+	//moving window
+	for(int i = 0; i < 4; i++){
+		x[i] = x[i+1];
+	}
+	//set new input to final value in window
+	x[4] = input;
+	float returnedOutput = 0;
+	//sum of products of coefficient and input
+	for(int i = 0; i < 5; i++){
+		returnedOutput += x[i] * coefficients[4-i];
+	}
+	*output = returnedOutput;
+		//printf("The input of the filter is: %d \n", input);
+		//printf("The output of the filter is: %f \n", *output);
+}
+
+void c_math(float input){
+	static int mathCounter;
+	printf("The input is: %f \n", input);
+	//set comparing variable to input only on first math loop
+	
+	rms_value += input*input;
+	
+	mathCounter++;
+
+	//rms is square root of (sum of squares divided by length)
+	mathOutput = (float) (sqrt(rms_value/((float)(mathCounter))));
+
+}
+
+void valueParse(float mathOutput){ 	
+	
+	int firstDigit, secondDigit, thirdDigit, fourthDigit = 0;
+	
+	float temp = mathOutput;
+	
+	//parse first, second and third digits in calculated value
+	firstDigit = (int) (temp);
+	secondDigit = (int) ((temp - (float)(firstDigit)) * 10.0f);
+	thirdDigit = (int) ((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f);
+	fourthDigit = (int) ((((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f - (float)(thirdDigit))) * 10.0f);
+	
+	//set digits to output variables
+	
+	outputDigits[0] = firstDigit;
+	outputDigits[1] = secondDigit;
+	outputDigits[2] = thirdDigit;
+	outputDigits[3] = fourthDigit;
+}
+
+void ledDriver(int ledPos, int number, int modeFlag){
+	if(modeFlag == 1) {
+		if(number == 0){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
+		}
+		else if(number == 1){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
+		}
+		else if(number == 2){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+		}
+		else if(number == 3){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+		}
+		else if(number == 4){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+		}
+		else if(number == 5){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+		}
+		else if(number == 6){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+		}
+		else if(number == 7){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
+			}
+		else if(number == 8){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+			}
+		else if(number == 9){
+				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_D, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
+			}
+			if(ledPos == 0){
+				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+			}
+		else if(ledPos == 1){ //position (X)XX
+				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+			}
+		else if(ledPos == 2){		//position X(X)X
+				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+			}
+		else if(ledPos == 3){//position XX(X)
+				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_SET);
+			}
+		}
+	else if(modeFlag == 0) {
+		HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+	}
+}
+
+
+int getKeypadValue(){
+	
+	int valueReturned = -1;
+	
+	static int counter = 0;
+	for(counter =0; counter< 4; counter++) {
+		if (counter == 0){
+			
+			HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
+			HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+			
+		}
+		
+		else if (counter == 1) {
+			
+			HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_2, GPIO_PIN_SET );
+			HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+
+		}
+		
+		else if (counter == 2){
+		
+			HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_3, GPIO_PIN_SET );
+			HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+		}
+		
+		else if (counter == 3){
+			HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+			HAL_GPIO_WritePin(ROW_4, GPIO_PIN_SET );
+			
+		} 
+		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
+				{valueReturned = keypadMatrix[0][counter]; break;}
+		else if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
+				{valueReturned = keypadMatrix[1][counter]; break;}
+		else if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
+				{valueReturned = keypadMatrix[2][counter]; break;}
+
+	}	
+	return valueReturned;
+}
 
 void pwmSetValue(uint16_t pulseValue) {
 	
