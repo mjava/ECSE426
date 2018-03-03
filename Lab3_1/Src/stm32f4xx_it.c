@@ -74,29 +74,32 @@ void SysTick_Handler(void)
 	if(displaySwitchTrigger >= LED_POSITION_TIMER){
 			displaySwitchTrigger = 0;
 			ledPosition++;
-			//reset to 0 when ledPosition reaches 4
+			/*reset to 0 when ledPosition reaches 4*/
 			ledPosition = ledPosition % 4;
-			//at ledPosition x, display outputDigit[x]
+			/*at ledPosition x, display outputDigit[x]*/
 			ledDriver(ledPosition, outputDigits[ledPosition], modeFlag);
 	}
-		
+	/*start timer when button pressed*/
 	if(getKeypadValue()>-1 && getKeypadValue() < 12) {
 		keyReadTrigger++;
-		
-		if(keyReadTrigger >= KEY_TIMER) { //regular button press
+		/*regular button press*/
+		if(keyReadTrigger >= KEY_TIMER) { 
 			keyValid = 1;
+			/*if star or pound pressed, start the reset and sleep timers*/
 			if(getKeypadValue() == 10 || getKeypadValue() == 11) {
 				holdCount++;
 				sleepCount++;
-				if(sleepCount >= KEY_TIMER*3){  //restart input
+				/*if held for more than 4 seconds, turn on sleep mode*/
+				if(sleepCount >= KEY_TIMER*3){ 
 					sleepKey = 1;
 					sleepCount = 0;
 				} 
-				if(holdCount >= KEY_TIMER*2) { //sleep mode
+				/*if held for more 1-2 seconds, turn on reset mode*/
+				if(holdCount >= KEY_TIMER*2) {
 					restartKey = 1;
 					holdCount = 0;
 				}				
-			} 			
+			}
 			keyReadTrigger = 0;
 		} else {
 				keyValid = 0;

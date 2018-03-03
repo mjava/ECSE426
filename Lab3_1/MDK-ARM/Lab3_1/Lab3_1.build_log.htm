@@ -31,11 +31,13 @@ compiling main.c...
 ../Src/main.c(563): warning:  #1035-D: single-precision operand implicitly converted to double-precision
   	filterOutput = filterOutput * 3.0 / 255.0; //8bit conversion, Vref at 3V
 ../Src/main.c(815): warning:  #1035-D: single-precision operand implicitly converted to double-precision
-  	while(error >= 0.1*controllerTarget) {
-../Src/main.c: 2 warnings, 0 errors
+  	while(error >= 0.05*controllerTarget) {
+../Src/main.c(827): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  		if(error == 0.05*controllerTarget) {
+../Src/main.c: 3 warnings, 0 errors
 linking...
-Program Size: Code=10496 RO-data=460 RW-data=156 ZI-data=1196  
-"Lab3_1\Lab3_1.axf" - 0 Error(s), 2 Warning(s).
+Program Size: Code=10712 RO-data=460 RW-data=156 ZI-data=1196  
+"Lab3_1\Lab3_1.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -58,7 +60,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.0.2
-Build Time Elapsed:  00:00:06
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>

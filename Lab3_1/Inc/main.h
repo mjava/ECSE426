@@ -73,8 +73,8 @@
 
 #define PWM_OUTPUT  GPIOC, GPIO_PIN_6
 
-#define LED_POSITION_TIMER 5
-#define KEY_TIMER 60
+#define LED_POSITION_TIMER 5 //refresh LED display
+#define KEY_TIMER 60 //debouncing value
 
 /* ########################## Assert Selection ############################## */
 /**

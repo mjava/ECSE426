@@ -42,15 +42,10 @@
 
 /* USER CODE BEGIN Includes */
 
-#define HASH 10
-#define STAR 12
-
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
@@ -58,24 +53,23 @@ TIM_HandleTypeDef htim3;
 uint32_t adcConversion = 0;
 int buttonPressed;
 int buttonPressedOld;
-int keypadMatrix[3][4] = {{1,4,7,10}, {2,5,8,0},{3,6,9,11}};
-int state = 0;
-//int modeFlag;
+int keypadMatrix[3][4] = {{1,4,7,10}, {2,5,8,0},{3,6,9,11}}; //10 = star, 11 = pound
+int state; //state for keypad
 float mathInput;
 float mathOutput;
 int x[5] = {0};
 float rms_value = 0;
 float filterOutput;
-int keyReadTrigger; //debouncing for keypad
+int keyReadTrigger; //timer for debouncing for keypad
 int displaySwitchTrigger; //triggers the switch between LEDs
 int ledPosition;
 int modeFlag;
 int outputDigits[4];
-int keyValid = 0;
-int sleepKey = 0;
-int restartKey = 0;
-int holdCount = 0;
-int sleepCount = 0;
+int keyValid = 0; //flag for normal key
+int sleepKey = 0; //flag for putting keypad to sleep or waking up
+int restartKey = 0; //flag for restarting keypad
+int holdCount = 0; //timer for restarting keypad
+int sleepCount = 0; //timer for putting keypad to sleep or waking up
 float controllerTarget;
 float error;
 int pulseWidth;
@@ -86,7 +80,6 @@ int pulseWidth;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
-//static void MX_TIM2_Init(void);
 static void MX_TIM3_Init(void);
                                     
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
@@ -156,23 +149,27 @@ int main(void)
 		switch(state) {
 			case 0: //sleep mode
 				modeFlag = 0;
+				/* if pound held and sleep flag is on, turn on keypad */
 				if(getKeypadValue() == 11 && keyValid && sleepKey) {
 					sleepKey = 0;
 					keyValid = 0;
 					state = 1;
 				}			
 				break;
-			case 1: //awake mode
+			case 1: //awake (reset) mode
 				modeFlag = 1;
+				//reset all LEDs to 0
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] =0;
 				outputDigits[3] =0;
+				/* if a key between 0-9 has been pressed, move to next state (first digit inputted) */
 				if(getKeypadValue()>-1 && getKeypadValue() < 10 && keyValid) {
 					buttonPressed = getKeypadValue();
 					keyValid = 0;
 					state = 2;
 				}
+				/* if star held and sleep flag is on, turn off keypad */
 				else if(getKeypadValue() == 10 && keyValid && sleepKey) {
 					sleepKey = 0;
 					keyValid = 0;
@@ -181,24 +178,29 @@ int main(void)
 				break;
 			case 2: //first digit
 				modeFlag = 1;
+				/* input button pressed from state 1 into last digit */
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] =0;
 				outputDigits[3] = buttonPressed;
+				/* if star held and sleep flag is on, turn off keypad */
 				if(getKeypadValue() == 10 && keyValid && sleepKey) {
 					sleepKey = 0;
 					keyValid = 0;
 					state = 0;
 				}
+				/* if star held and restart flag is on, go to state 1 to reset keypad */
 				else if(getKeypadValue() == 10 && keyValid && restartKey) {
 					restartKey = 0;
 					keyValid = 0;
 					state = 1;
 				}
+				/* if star pressed, delete inputted value by returning to reset state */
 				else if(getKeypadValue() == 10 && keyValid) {
 					keyValid = 0;
 					state = 1;
 				}
+				/* if a key between 0-9 has been pressed, move to next state (second digit inputted) */
 				else if(getKeypadValue()>-1 && getKeypadValue() < 10 && keyValid) {
 					buttonPressedOld = buttonPressed;
 					buttonPressed = getKeypadValue();
@@ -208,38 +210,46 @@ int main(void)
 				break;
 			case 3: //second digit
 				modeFlag = 1;
+				/* input button pressed from state 1 into third digit and input button from state 2 into last digit */
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] = buttonPressedOld;
 				outputDigits[3] = buttonPressed;
+				/* if star held and sleep flag is on, turn off keypad */
 				if(getKeypadValue() == 10 && keyValid && sleepKey) {
 					keyValid = 0;
 					sleepKey = 0;
 					state = 0;
 				}
+				/* if star held and restart flag is on, reset keypad by moving to state 1*/
 				else if(getKeypadValue() == 10 && keyValid && restartKey) {
 					keyValid = 0;
 					restartKey = 0;
 					state = 1;
 				}
+				/* if star pressed, delete inputted value by returning to reset state */
 				else if(getKeypadValue() == 10 && keyValid) {
 					buttonPressed = buttonPressedOld;
 					keyValid = 0;
 					state = 2;
 				}
+				/* if pound pressed, move to state 4 to submit value */
 				else if(getKeypadValue() == 11 && keyValid) {
 					keyValid = 0;
 					state = 4;
 				}				
 				break;
 			case 4:
+				/* submit user inputte value to controller */
 				mathInput = (float) (outputDigits[2] + (outputDigits[3]/10.0));
 				pwmController(mathInput, mathOutput);
+				/* if star held and sleep flag is on, turn off keypad */
 				if(getKeypadValue() == 10 && keyValid && sleepKey) {
 					keyValid = 0;
 					sleepKey = 0;
 					state = 0;
 				}
+				/* if star held and restart flag is on, reset keypad by moving to state 1*/
 				else if(getKeypadValue() == 10 && keyValid && restartKey) {
 					keyValid = 0;
 					sleepKey = 0;
@@ -249,11 +259,9 @@ int main(void)
 			}
 		
   /* USER CODE END WHILE */
-		//printf("ADC conversion: %d\n",adcConversion);
-  /* USER CODE BEGIN 3 */
-		
 
-  }
+  /* USER CODE BEGIN 3 */
+	}
   /* USER CODE END 3 */
 
 }
@@ -364,7 +372,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 8399; /* gives frequency of 10 kHz by: 84 MHz/10 kHz - 1 = 8399 */
+  htim3.Init.Period = 8399; /* gives frequency of 10 kHz by: 84 MHz/10 kHz - 1 = 8399 (where 84 MHz comes from APB1 timer)*/
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
@@ -403,7 +411,7 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
+  sConfigOC.OCMode = TIM_OCMODE_ACTIVE; /*output compare for ADC sampling*/
   if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -513,7 +521,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : Column_Keypad_1_Pin Column_Keypad_2_Pin Column_Keypad_3_Pin */
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN; /* pulldown to detect change in logic when button pressed */
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PC7 PC10 PC12 */
@@ -554,68 +562,95 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+  * @brief  Retrive ADC conversion value and put through filter and RMS calculation
+  * @param  hadc: pointer to ADC handler
+  * @retval None
+  */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	
 	adcConversion = HAL_ADC_GetValue(hadc);
 	
 	FIR_C(adcConversion, &filterOutput);
 		
-	filterOutput = filterOutput * 3.0 / 255.0; //8bit conversion, Vref at 3V
+	filterOutput = filterOutput * 3.0 / 255.0; /* 8bit conversion, Vref at 3V */
 	
 	c_math(filterOutput);
 
 }
+
+/**
+  * @brief  Filter inputted value from ADC conversion
+	* @param  input: value from ADC conversion
+	* @param 	output: pointer to array of outputted filter values
+  * @retval None
+  */
 void FIR_C(uint32_t input, float *output) {
 	
 	float coefficients[5] = {0.2,0.2,0.2,0.2,0.2};
-	//moving window
+	/* moving window */
 	for(int i = 0; i < 4; i++){
 		x[i] = x[i+1];
 	}
-	//set new input to final value in window
+	/* set new input to final value in window */
 	x[4] = input;
 	float returnedOutput = 0;
-	//sum of products of coefficient and input
+	/* sum of products of coefficient and input */
 	for(int i = 0; i < 5; i++){
 		returnedOutput += x[i] * coefficients[4-i];
 	}
 	*output = returnedOutput;
 }
 
+/**
+  * @brief  RMS calculation
+  * @param  input: value from filter output
+  * @retval None
+  */
 void c_math(float input){
 	static int mathCounter;
 
-	//set comparing variable to input only on first math loop
-	
 	rms_value += input*input;
-	
+	/*increment for every rms_value to find length*/
 	mathCounter++;
 
-	//rms is square root of (sum of squares divided by length)
+	/*rms is square root of (sum of squares divided by length)*/
 	mathOutput = (float) (sqrt(rms_value/((float)(mathCounter))));
 
 }
 
+/**
+  * @brief  Parsing of values returned from RMS calculation for display on LED display
+	* @param  mathOutput: value returned from RMS calculation
+  * @retval None
+  */
 void valueParse(float mathOutput){ 	
 	
+	/* first, second, third and fourth digit from RMS calculation */
 	int firstDigit, secondDigit, thirdDigit, fourthDigit = 0;
 	
 	float temp = mathOutput;
 	
-	//parse first, second and third digits in calculated value
+	/*parse first, second and third digits in calculated value*/
 	firstDigit = (int) (temp);
 	secondDigit = (int) ((temp - (float)(firstDigit)) * 10.0f);
 	thirdDigit = (int) ((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f);
 	fourthDigit = (int) ((((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f - (float)(thirdDigit))) * 10.0f);
 	
-	//set digits to output variables
-	
+	/*set digits to output variables for LED display	*/
 	outputDigits[0] = firstDigit;
 	outputDigits[1] = secondDigit;
 	outputDigits[2] = thirdDigit;
 	outputDigits[3] = fourthDigit;
 }
 
+/**
+  * @brief  Setup for LED display
+	* @param  ledPos: position of value to be displayed (1, 2, 3 or 4)
+	*	@param	number: number to be displayed
+	* @param	modeFlag: sleep or awake mode (from keypad state)
+  * @retval None
+  */
 void ledDriver(int ledPos, int number, int modeFlag){
 	if(modeFlag == 1) {
 		if(number == 0){
@@ -689,7 +724,7 @@ void ledDriver(int ledPos, int number, int modeFlag){
 				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
-			}
+		}
 		else if(number == 8){
 				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
@@ -698,7 +733,7 @@ void ledDriver(int ledPos, int number, int modeFlag){
 				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
-			}
+		}
 		else if(number == 9){
 				HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
@@ -707,32 +742,33 @@ void ledDriver(int ledPos, int number, int modeFlag){
 				HAL_GPIO_WritePin(SEGMENT_E, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
-			}
-			if(ledPos == 0){
-				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
-			}
+		}
+		if(ledPos == 0){
+			HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+		}
 		else if(ledPos == 1){ //position (X)XX
 				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
-			}
+		}
 		else if(ledPos == 2){		//position X(X)X
 				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
-			}
+		}
 		else if(ledPos == 3){//position XX(X)
 				HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
 				HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_SET);
-			}
 		}
+	}
+	/* if sleep mode: turn off cathodes to turn off display */
 	else if(modeFlag == 0) {
 		HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
@@ -741,12 +777,17 @@ void ledDriver(int ledPos, int number, int modeFlag){
 	}
 }
 
-
+/**
+  * @brief  Get user inputted value from keypad
+  * @param  None
+  * @retval User inputted value from keypad
+  */
 int getKeypadValue(){
 	
 	int valueReturned = -1;
 	
 	static int counter = 0;
+	/*go through rows and turn each one on, then check columns for input*/
 	for(counter =0; counter< 4; counter++) {
 		if (counter == 0){
 			
@@ -781,6 +822,7 @@ int getKeypadValue(){
 			HAL_GPIO_WritePin(ROW_4, GPIO_PIN_SET );
 			
 		} 
+		/*read the columns: if column is set to high, that means the button in the output row that is on is being pressed, so return that value*/
 		if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
 				{valueReturned = keypadMatrix[0][counter]; break;}
 		else if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
@@ -792,6 +834,11 @@ int getKeypadValue(){
 	return valueReturned;
 }
 
+/**
+  * @brief  Reconfigure timer for PWM generation and set the pulse width to the output of the controller
+	* @param  pulseValue: the pulse width returned from the PWM controller
+  * @retval None
+  */
 void pwmSetValue(uint16_t pulseValue) {
 	
 		TIM_OC_InitTypeDef sConfigOC;
@@ -805,18 +852,42 @@ void pwmSetValue(uint16_t pulseValue) {
     HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);  
 }
 
+/**
+  * @brief  PWM controller that controls the pulse of the PWM generation depending on user inputted value from keypad
+	* @param  input: inputted value from keypad
+	*	@param	output: RMS value from filter and c_math
+  * @retval None
+  */
 void pwmController(float input, float output) {
 	
 	controllerTarget = input;
-	error = input - output;  //can be positive or negative 
-	
+	/*calculate error between user inputted value and RMS value from ADC conversion*/
+	error = input - output;	
 	float pValue = 100.0f;
 	
-	while(error >= 0.1*controllerTarget) {
+	/*adjust pulseWidth until within 5% of user inputted value*/
+	while(error >= 0.05*controllerTarget) {
 	
-		pulseWidth += (int) (error * pValue);
+		/*if user value is higher than RMS value, increase pulse width*/
+		if(error > 0 && pulseWidth < 8400) {
+			pulseWidth++;
+		}
+		/*if user value is less than RMS value, decrease pulse width*/
+		if(error < 0 && pulseWidth > 0) {
+			pulseWidth--;
+		}
+		pulseWidth = (int) (error * pValue);
+		/*set pulse width of PWM generation to the continuously updating result*/
 		pwmSetValue(pulseWidth);
+		/*update error with every updating pulse width value*/
+		error = input-mathOutput;
+		/*display value*/
 		valueParse(mathOutput);
+		/*if at 5% of user inputted value, stop updating*/
+		if(error == 0.05*controllerTarget) {
+			HAL_ADC_Stop(&hadc1);
+			break;
+		}
 	}
 }
 /* USER CODE END 4 */
