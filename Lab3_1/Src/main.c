@@ -148,12 +148,14 @@ int main(void)
   {	
 		switch(state) {
 			case 0: //sleep mode
+				//HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
 				modeFlag = 0;
 				/* if pound held and sleep flag is on, turn on keypad */
 				if(getKeypadValue() == 11 && keyValid && sleepKey) {
 					sleepKey = 0;
 					keyValid = 0;
 					state = 1;
+					//HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
 				}			
 				break;
 			case 1: //awake (reset) mode
@@ -886,6 +888,7 @@ void pwmController(float input, float output) {
 		/*if at 5% of user inputted value, stop updating*/
 		if(error == 0.05*controllerTarget) {
 			HAL_ADC_Stop(&hadc1);
+			//HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
 			break;
 		}
 	}
