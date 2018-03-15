@@ -49,6 +49,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "cmsis_os.h"
+#include "math.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -71,6 +72,7 @@ osSemaphoreId sleepSemaphore;
 /* Private variables ---------------------------------------------------------*/
 uint32_t adcConversion = 0;
 uint32_t buttonSignal = 0;
+uint32_t displaySignal = 0;
 int buttonPressed;
 int buttonPressedOld;
 int key;
@@ -527,6 +529,7 @@ void generalTimer(void const * argument) {
 			ledPosition++;
 			/*reset to 0 when ledPosition reaches 4*/
 			ledPosition = ledPosition % 4;
+			osSignalSet(ledDriver,displaySignal);
 		}
 	}
 }
@@ -537,8 +540,8 @@ void keypadTimer(void const * argument) {
 		osDelay(KEY_TIMER);
 		if(valueReturned == 10 || valueReturned == 11) {
 			holdCount++;
-			sleepCount++;
 			osSemaphoreWait(sleepSemaphore, osWaitForever);
+			sleepCount++;
 			/*if held for more than 4 seconds, turn on sleep mode or wakeup from sleep*/
 			if(sleepCount >= KEY_TIMER*3) {
 				sleepKey = 1;
@@ -562,7 +565,9 @@ void keypadTimer(void const * argument) {
 
 void ledDriver(void const * argument){
 	while(1) {
-		if(state > 1) {
+		osSignalWait(displaySignal,osWaitForever);
+		displaySignal = 0;
+		//if(state > 0) {
 			if(valueReturned == 0){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
@@ -679,13 +684,13 @@ void ledDriver(void const * argument){
 			}
 		}
 		/* if sleep mode: turn off cathodes to turn off display */
-		else if(state == 0) {
-			HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
-		}
-	}
+//		else if(state == 0) {
+//			HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+//			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+//		}
+//	}
 }
 
 void stateController(void const * argument) {
@@ -819,13 +824,19 @@ void stateController(void const * argument) {
 void getKeypadValue(void const * argument) {
 	while(1) {
 		valueReturned = -1;
-	
 		static int counter = 0;
 		/*go through rows and turn each one on, then check columns for input*/
-		for(counter =0; counter< 4; counter++) {
-
-			if (counter == 0){
+		for(counter =0; counter < 4; counter++) {
+			if((state == 0 && valueReturned != 11) || (state>0 && valueReturned != 10)) {
+				osSemaphoreWait(sleepSemaphore, osWaitForever);
+				sleepCount = 0;
+				osSemaphoreRelease(sleepSemaphore);
+			} else if(state == 0) {
+				valueReturned = -1;
+			} else {
 				osSignalSet(stateController, buttonSignal);
+			}
+			if (counter == 0){
 				HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
 				HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
 				HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
@@ -860,6 +871,146 @@ void getKeypadValue(void const * argument) {
 					{valueReturned = keypadMatrix[2][counter]; }
 			osSemaphoreRelease(keyboardButtonSemaphore);
 		}	
+	}
+}
+
+/**
+  * @brief  PWM controller that controls the pulse of the PWM generation depending on user inputted value from keypad
+	* @param  input: inputted value from keypad
+	*	@param	output: RMS value from filter and c_math
+  * @retval None
+  */
+void pwmController(float input, float output) {
+	
+	controllerTarget = input;
+	/*calculate error between user inputted value and RMS value from ADC conversion*/
+	error = input - output;	
+	float pValue = 100.0f;
+	
+	/*adjust pulseWidth until within 5% of user inputted value*/
+	while(error >= 0.05*controllerTarget) {
+	
+		/*if user value is higher than RMS value, increase pulse width*/
+		if(error > 0 && pulseWidth < 8400) {
+			pulseWidth++;
+		}
+		/*if user value is less than RMS value, decrease pulse width*/
+		if(error < 0 && pulseWidth > 0) {
+			pulseWidth--;
+		}
+		pulseWidth = (int) (error * pValue);
+		/*set pulse width of PWM generation to the continuously updating result*/
+		pwmSetValue(pulseWidth);
+		/*update error with every updating pulse width value*/
+		error = input-mathOutput;
+		/*display value*/
+		valueParse(mathOutput);
+		/*if at 5% of user inputted value, stop updating*/
+		if(error == 0.05*controllerTarget) {
+			HAL_ADC_Stop(&hadc1);
+			//HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
+			break;
+		}
+	}
+}
+
+/**
+  * @brief  Reconfigure timer for PWM generation and set the pulse width to the output of the controller
+	* @param  pulseValue: the pulse width returned from the PWM controller
+  * @retval None
+  */
+void pwmSetValue(uint16_t pulseValue) {
+	
+		TIM_OC_InitTypeDef sConfigOC;
+  
+    sConfigOC.OCMode = TIM_OCMODE_PWM1;
+    sConfigOC.Pulse = pulseValue;
+    sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+	
+    HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);  
+}
+/**
+  * @brief  Retrive ADC conversion value and put through filter and RMS calculation
+  * @param  hadc: pointer to ADC handler
+  * @retval None
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	
+	adcConversion = HAL_ADC_GetValue(hadc);
+	
+	FIR_C(adcConversion, &filterOutput);
+		
+	filterOutput = filterOutput * 3.0 / 255.0; /* 8bit conversion, Vref at 3V */
+	
+	c_math(filterOutput);
+
+}
+
+/**
+  * @brief  Filter inputted value from ADC conversion
+	* @param  input: value from ADC conversion
+	* @param 	output: pointer to array of outputted filter values
+  * @retval None
+  */
+void FIR_C(uint32_t input, float *output) {
+	
+	float coefficients[5] = {0.2,0.2,0.2,0.2,0.2};
+	/* moving window */
+	for(int i = 0; i < 4; i++){
+		x[i] = x[i+1];
+	}
+	/* set new input to final value in window */
+	x[4] = input;
+	float returnedOutput = 0;
+	/* sum of products of coefficient and input */
+	for(int i = 0; i < 5; i++){
+		returnedOutput += x[i] * coefficients[4-i];
+	}
+	*output = returnedOutput;
+}
+
+/**
+  * @brief  RMS calculation
+  * @param  input: value from filter output
+  * @retval None
+  */
+void c_math(float input){
+	static int mathCounter;
+
+	rms_value += input*input;
+	/*increment for every rms_value to find length*/
+	mathCounter++;
+
+	/*rms is square root of (sum of squares divided by length)*/
+	mathOutput = (float) (sqrt(rms_value/((float)(mathCounter))));
+
+}
+
+/**
+  * @brief  Parsing of values returned from RMS calculation for display on LED display
+	* @param  mathOutput: value returned from RMS calculation
+  * @retval None
+  */
+void valueParse(float mathOutput){ 	
+	
+	/* first, second, third and fourth digit from RMS calculation */
+	int firstDigit, secondDigit, thirdDigit, fourthDigit = 0;
+	
+	float temp = mathOutput;
+	
+	/*parse first, second and third digits in calculated value*/
+	firstDigit = (int) (temp);
+	secondDigit = (int) ((temp - (float)(firstDigit)) * 10.0f);
+	thirdDigit = (int) ((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f);
+	fourthDigit = (int) ((((((temp - (float)(firstDigit)) * 10.0f) - (float)(secondDigit)) * 10.0f - (float)(thirdDigit))) * 10.0f);
+	
+	/*set digits to output variables for LED display	*/
+	outputDigits[0] = firstDigit;
+	outputDigits[1] = secondDigit;
+	outputDigits[2] = thirdDigit;
+	outputDigits[3] = fourthDigit;
 }
 /* USER CODE END 4 */
 
