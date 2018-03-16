@@ -147,6 +147,7 @@
 /* USER CODE BEGIN Private defines */
 #define LED_POSITION_TIMER 5 //refresh LED display
 #define KEY_TIMER 60 //debouncing value
+#define STATE_TIMER 180 //fsm
 
 /* USER CODE END Private defines */
 

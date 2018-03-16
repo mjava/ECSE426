@@ -65,6 +65,7 @@ osThreadId stateThread;
 osThreadId displayThread;
 osThreadId keypadButtonThread;
 
+osSemaphoreId myBinarySem01Handle;
 osSemaphoreId keyboardButtonSemaphore;
 osSemaphoreId sleepSemaphore;
 
@@ -73,6 +74,7 @@ osSemaphoreId sleepSemaphore;
 uint32_t adcConversion = 0;
 uint32_t buttonSignal = 0;
 uint32_t displaySignal = 0;
+uint32_t sleepSignal = 0;
 int buttonPressed;
 int buttonPressedOld;
 int key;
@@ -85,9 +87,12 @@ float rms_value = 0;
 float filterOutput;
 int keyReadTrigger; //timer for debouncing for keypad
 int displaySwitchTrigger; //triggers the switch between LEDs
+int timer;
+int counter;
+int last_counter;
 int ledPosition;
 int outputDigits[4];
-//int keyValid = 0; //flag for normal key
+int keyValid = 0; //flag for normal key
 int sleepKey = 0; //flag for putting keypad to sleep or waking up
 int restartKey = 0; //flag for restarting keypad
 int holdCount = 0; //timer for restarting keypad
@@ -177,7 +182,9 @@ int main(void)
   /* USER CODE END RTOS_MUTEX */
 
   /* Create the semaphores(s) */
-  
+  osSemaphoreDef(myBinarySem01);
+	myBinarySem01Handle = osSemaphoreCreate(osSemaphore(myBinarySem01), 1);
+	
 	osSemaphoreDef(keyboardButtonSem);
 	keyboardButtonSemaphore = osSemaphoreCreate(osSemaphore(keyboardButtonSem), 1);
 	
@@ -468,7 +475,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : Column_Keypad_1_Pin Column_Keypad_2_Pin Column_Keypad_3_Pin OTG_FS_OverCurrent_Pin */
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|OTG_FS_OverCurrent_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LD4_Pin LD3_Pin LD5_Pin LD6_Pin 
@@ -529,7 +536,7 @@ void generalTimer(void const * argument) {
 			ledPosition++;
 			/*reset to 0 when ledPosition reaches 4*/
 			ledPosition = ledPosition % 4;
-			osSignalSet(ledDriver,displaySignal);
+			osSignalSet(displayThread,displaySignal);
 		}
 	}
 }
@@ -538,37 +545,51 @@ void keypadTimer(void const * argument) {
 	while(1) {
 		//debouncing
 		osDelay(KEY_TIMER);
-		if(valueReturned == 10 || valueReturned == 11) {
-			holdCount++;
-			osSemaphoreWait(sleepSemaphore, osWaitForever);
-			sleepCount++;
-			/*if held for more than 4 seconds, turn on sleep mode or wakeup from sleep*/
-			if(sleepCount >= KEY_TIMER*3) {
-				sleepKey = 1;
-				sleepCount = 0;
-				/*if in sleep mode -> waking up, turn on threads*/
-				if(state == 0) {
-					generalTimerThread = osThreadCreate(osThread(timerThread), NULL);
-					stateThread = osThreadCreate(osThread(fsmThread), NULL);
-					displayThread = osThreadCreate(osThread(ledThread), NULL);
+		if(valueReturned > -1 && valueReturned < 12) {
+			keyValid = 1;
+			if(valueReturned == 10 || valueReturned == 11) {
+				sleepCount++;
+				holdCount++;
+				/*if held for more 1-2 seconds, turn on reset mode*/
+				if(holdCount >= KEY_TIMER*1.5) {
+					restartKey = 1;
+					holdCount = 0;
+				}	
+				/*if held for more than 4 seconds, turn on sleep mode or wakeup from sleep*/
+				if(sleepCount >= KEY_TIMER*2) {
+					sleepKey = 1;
+					sleepCount = 0;
+					/*if in sleep mode -> waking up, turn on threads*/
+					if(state == 0) {
+						/* Start timer for PWM generation */
+						HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+						/* Start ADC interrupt triggered by timer */
+						HAL_ADC_Start_IT(&hadc1);
+						
+						generalTimerThread = osThreadCreate(osThread(timerThread), NULL);
+						stateThread = osThreadCreate(osThread(fsmThread), NULL);
+						displayThread = osThreadCreate(osThread(ledThread), NULL);
+						sleepKey = 0;
+						state = 1;
+					}
 				}
 			}
-			osSemaphoreRelease(sleepSemaphore);
-		}
-		/*if held for more 1-2 seconds, turn on reset mode*/
-		if(holdCount >= KEY_TIMER*2) {
-			restartKey = 1;
+		} 
+		else if(valueReturned == -1) {
 			holdCount = 0;
-		}				
+			sleepCount = 0;
+		}
 	}
 }
 
 void ledDriver(void const * argument){
+	int number = -1;
 	while(1) {
 		osSignalWait(displaySignal,osWaitForever);
 		displaySignal = 0;
-		//if(state > 0) {
-			if(valueReturned == 0){
+		number = outputDigits[ledPosition];
+		if(state > 0) {
+			if(number == 0){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -577,7 +598,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
 			}
-			else if(valueReturned == 1){
+			else if(number == 1){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -586,7 +607,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
 			}
-			else if(valueReturned == 2){
+			else if(number == 2){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_RESET);
@@ -595,7 +616,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 3){
+			else if(number == 3){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -604,7 +625,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 4){
+			else if(number == 4){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -613,7 +634,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 5){
+			else if(number == 5){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -622,7 +643,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 6){
+			else if(number == 6){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -631,7 +652,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 7){
+			else if(number == 7){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -640,7 +661,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_RESET);
 			}
-			else if(valueReturned == 8){
+			else if(number == 8){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -649,7 +670,7 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(SEGMENT_F, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_G, GPIO_PIN_SET);
 			}
-			else if(valueReturned == 9){
+			else if(number == 9){
 					HAL_GPIO_WritePin(SEGMENT_A, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_B, GPIO_PIN_SET);
 					HAL_GPIO_WritePin(SEGMENT_C, GPIO_PIN_SET);
@@ -682,15 +703,17 @@ void ledDriver(void const * argument){
 					HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_SET);
 			}
+			osDelay(2);
 		}
 		/* if sleep mode: turn off cathodes to turn off display */
-//		else if(state == 0) {
-//			HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
-//			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
-//			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
-//			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
-//		}
-//	}
+		else if(state == 0) {
+			HAL_GPIO_WritePin(CATHODE_1, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+			osSignalSet(stateThread, sleepSignal);
+		}
+	}
 }
 
 void stateController(void const * argument) {
@@ -701,117 +724,120 @@ void stateController(void const * argument) {
 		/* wait for semaphore, then when received save value from keypad handler into variable and release semaphore */
 		osSemaphoreWait(keyboardButtonSemaphore, osWaitForever);
 		key	= valueReturned;
-		key	= -1;
+		valueReturned	= -1;
 		osSemaphoreRelease(keyboardButtonSemaphore);
 		switch(state) {
-			case 0: //sleep mode
+			case 0: //sleep mode			
 				/* terminate threads in sleep mode for power consumption */
-				osThreadTerminate(ledDriver);
-				osThreadTerminate(generalTimerThread);					
+				osSignalWait(sleepSignal, osWaitForever);
+				/* Stop timer for PWM generation */
+				HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+				/* Stop ADC interrupt triggered by timer */
+				HAL_ADC_Stop_IT(&hadc1);
+				//osThreadTerminate(displayThread);
+				//osThreadTerminate(generalTimerThread);	
+				//return;
+				
+				
 				/* if pound held and sleep flag is on, turn on keypad */
-				if(key == 11 && sleepKey) {
-					sleepKey = 0;
-					//keyValid = 0;
-					state = 1;
-					//HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
-				}			
+//				if(key == 11 && sleepKey && keyValid) {
+//					sleepKey = 0;
+//					keyValid = 0;
+//				}			
 				break;
 			case 1: //awake (reset) mode
-				//modeFlag = 1;
 				//reset all LEDs to 0
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] =0;
 				outputDigits[3] =0;
 				/* if a key between 0-9 has been pressed, move to next state (first digit inputted) */
-				if(key-1 && key < 10) {
+				if(key > -1 && key < 10 && keyValid) {
 					buttonPressed = key;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 2;
 				}
 				/* if star held and sleep flag is on, turn off keypad */
-				else if(key == 10 && sleepKey) {
+				else if(key == 10 && sleepKey && keyValid) {
 					sleepKey = 0;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 0;
 				}
 				break;
 			case 2: //first digit
-				//modeFlag = 1;
 				/* input button pressed from state 1 into last digit */
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] =0;
 				outputDigits[3] = buttonPressed;
 				/* if star held and sleep flag is on, turn off keypad */
-				if(key == 10 && sleepKey) {
+				if(key == 10 && sleepKey && keyValid) {
 					sleepKey = 0;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 0;
 				}
 				/* if star held and restart flag is on, go to state 1 to reset keypad */
-				else if(key == 10 && restartKey) {
+				else if(key == 10 && restartKey && keyValid) {
 					restartKey = 0;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 1;
 				}
 				/* if star pressed, delete inputted value by returning to reset state */
-				else if(key == 10) {
-					//keyValid = 0;
+				else if(key == 10 && keyValid) {
+					keyValid = 0;
 					state = 1;
 				}
 				/* if a key between 0-9 has been pressed, move to next state (second digit inputted) */
-				else if(key>-1 && key < 10) {
+				else if(key>-1 && key < 10 && keyValid) {
 					buttonPressedOld = buttonPressed;
 					buttonPressed = key;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 3;
 				}
 				break;
 			case 3: //second digit
-				//modeFlag = 1;
 				/* input button pressed from state 1 into third digit and input button from state 2 into last digit */
 				outputDigits[0] =0;
 				outputDigits[1] =0;
 				outputDigits[2] = buttonPressedOld;
 				outputDigits[3] = buttonPressed;
 				/* if star held and sleep flag is on, turn off keypad */
-				if(key == 10 && sleepKey) {
-					//keyValid = 0;
+				if(key == 10 && sleepKey && keyValid) {
+					keyValid = 0;
 					sleepKey = 0;
 					state = 0;
 				}
 				/* if star held and restart flag is on, reset keypad by moving to state 1*/
-				else if(key == 10 && restartKey) {
-					//keyValid = 0;
+				else if(key == 10 && restartKey && keyValid) {
+					keyValid = 0;
 					restartKey = 0;
 					state = 1;
 				}
 				/* if star pressed, delete inputted value by returning to reset state */
-				else if(key == 10) {
+				else if(key == 10 && keyValid) {
 					buttonPressed = buttonPressedOld;
-					//keyValid = 0;
+					keyValid = 0;
 					state = 2;
 				}
 				/* if pound pressed, move to state 4 to submit value */
-				else if(key == 11) {
-					//keyValid = 0;
+				else if(key == 11 && keyValid) {
+					keyValid = 0;
 					state = 4;
 				}				
 				break;
 			case 4:
 				/* submit user inputte value to controller */
-				mathInput = (float) (outputDigits[2] + (outputDigits[3]/10.0));
+				mathInput = (float) (buttonPressedOld + (buttonPressed/10.0));
 				pwmController(mathInput, mathOutput);
 				/* if star held and sleep flag is on, turn off keypad */
-				if(key == 10 && sleepKey) {
-					//keyValid = 0;
+				if(key == 10 && sleepKey && keyValid) {
+					keyValid = 0;
 					sleepKey = 0;
 					state = 0;
 				}
 				/* if star held and restart flag is on, reset keypad by moving to state 1*/
-				else if(key == 10 && restartKey) {
-					//keyValid = 0;
+				else if(key == 10 && restartKey && keyValid) {
+					keyValid = 0;
 					sleepKey = 0;
 					state = 1;
 				}		
@@ -822,55 +848,62 @@ void stateController(void const * argument) {
 			
 			
 void getKeypadValue(void const * argument) {
+	static int counter = 0;
 	while(1) {
-		valueReturned = -1;
-		static int counter = 0;
-		/*go through rows and turn each one on, then check columns for input*/
-		for(counter =0; counter < 4; counter++) {
-			if((state == 0 && valueReturned != 11) || (state>0 && valueReturned != 10)) {
-				osSemaphoreWait(sleepSemaphore, osWaitForever);
-				sleepCount = 0;
-				osSemaphoreRelease(sleepSemaphore);
-			} else if(state == 0) {
-				valueReturned = -1;
-			} else {
-				osSignalSet(stateController, buttonSignal);
-			}
-			if (counter == 0){
-				HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
-				HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );				
-			}			
-			else if (counter == 1) {
-				HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_2, GPIO_PIN_SET );
-				HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
-			}
-			else if (counter == 2){
-				HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_3, GPIO_PIN_SET );
-				HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
-			}
-			else if (counter == 3){
-				HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
-				HAL_GPIO_WritePin(ROW_4, GPIO_PIN_SET );
-			} 
+			/*go through rows and turn each one on, then check columns for input*/
+			for(counter =0; counter < 4; counter++) {
+				/*if(state == 0 && valueReturned != 11) {
+					osSemaphoreWait(sleepSemaphore, osWaitForever);
+					sleepCount = 0;
+					osSemaphoreRelease(sleepSemaphore);
+				} else if(state == 0) {
+						valueReturned = -1;
+				} else {
+						osSignalSet(stateThread,buttonSignal);
+				}*/
+				if (counter == 0){
+					HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
+					HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );				
+				}			
+				else if (counter == 1) {
+					HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_2, GPIO_PIN_SET );
+					HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+				}
+				else if (counter == 2){
+					HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_3, GPIO_PIN_SET );
+					HAL_GPIO_WritePin(ROW_4, GPIO_PIN_RESET );
+				}
+				else if (counter == 3){
+					HAL_GPIO_WritePin(ROW_1, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_3, GPIO_PIN_RESET );
+					HAL_GPIO_WritePin(ROW_4, GPIO_PIN_SET );
+				} 
 
-			/*read the columns: if column is set to high, that means the button in the output row that is on is being pressed, so return that value*/
-			osSemaphoreWait(keyboardButtonSemaphore, osWaitForever);
-			if (HAL_GPIO_ReadPin(COLUMN_1) > 0)
-					{valueReturned = keypadMatrix[0][counter]; }
-			else if (HAL_GPIO_ReadPin(COLUMN_2) > 0)
-					{valueReturned = keypadMatrix[1][counter]; }
-			else if (HAL_GPIO_ReadPin(COLUMN_3) > 0)
-					{valueReturned = keypadMatrix[2][counter]; }
-			osSemaphoreRelease(keyboardButtonSemaphore);
-		}	
+				/*read the columns: if column is set to high, that means the button in the output row that is on is being pressed, so save that value
+					wait until keyboard semaphore is free */
+				osSemaphoreWait(keyboardButtonSemaphore, osWaitForever);
+				if (HAL_GPIO_ReadPin(COLUMN_1) > 0) {
+						valueReturned = keypadMatrix[0][counter]; 
+						osSignalSet(stateThread,buttonSignal);
+				}
+				else if (HAL_GPIO_ReadPin(COLUMN_2) > 0) {
+						valueReturned = keypadMatrix[1][counter]; 
+						osSignalSet(stateThread,buttonSignal);
+				}
+				else if (HAL_GPIO_ReadPin(COLUMN_3) > 0) {
+						valueReturned = keypadMatrix[2][counter]; 
+						osSignalSet(stateThread,buttonSignal);
+				}
+				osSemaphoreRelease(keyboardButtonSemaphore);
+			}	
+		
 	}
 }
 
@@ -881,22 +914,21 @@ void getKeypadValue(void const * argument) {
   * @retval None
   */
 void pwmController(float input, float output) {
-	
 	controllerTarget = input;
 	/*calculate error between user inputted value and RMS value from ADC conversion*/
 	error = input - output;	
 	float pValue = 100.0f;
 	
 	/*adjust pulseWidth until within 5% of user inputted value*/
-	while(error >= 0.05*controllerTarget) {
+	while(error >= 0.04*controllerTarget) {
 	
 		/*if user value is higher than RMS value, increase pulse width*/
 		if(error > 0 && pulseWidth < 8400) {
-			pulseWidth++;
+			pulseWidth+=5;
 		}
 		/*if user value is less than RMS value, decrease pulse width*/
 		if(error < 0 && pulseWidth > 0) {
-			pulseWidth--;
+			pulseWidth-=5;
 		}
 		pulseWidth = (int) (error * pValue);
 		/*set pulse width of PWM generation to the continuously updating result*/
@@ -905,8 +937,20 @@ void pwmController(float input, float output) {
 		error = input-mathOutput;
 		/*display value*/
 		valueParse(mathOutput);
+		/* if star held and sleep flag is on, turn off keypad */
+				if(key == 10 && sleepKey && keyValid) {
+					keyValid = 0;
+					sleepKey = 0;
+					state = 0;
+				}
+				/* if star held and restart flag is on, reset keypad by moving to state 1*/
+				else if(key == 10 && restartKey && keyValid) {
+					keyValid = 0;
+					sleepKey = 0;
+					state = 1;
+				}	
 		/*if at 5% of user inputted value, stop updating*/
-		if(error == 0.05*controllerTarget) {
+		if(error == 0.04*controllerTarget) {
 			HAL_ADC_Stop(&hadc1);
 			//HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
 			break;

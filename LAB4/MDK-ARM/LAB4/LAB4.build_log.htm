@@ -28,9 +28,16 @@ Project File Date:  03/15/2018
 *** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'LAB4'
 compiling main.c...
+../Src/main.c(923): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	while(error >= 0.04*controllerTarget) {
+../Src/main.c(953): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  		if(error == 0.04*controllerTarget) {
+../Src/main.c(989): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  	filterOutput = filterOutput * 3.0 / 255.0; /* 8bit conversion, Vref at 3V */
+../Src/main.c: 3 warnings, 0 errors
 linking...
-Program Size: Code=10052 RO-data=536 RW-data=120 ZI-data=16760  
-"LAB4\LAB4.axf" - 0 Error(s), 0 Warning(s).
+Program Size: Code=16592 RO-data=628 RW-data=288 ZI-data=16792  
+"LAB4\LAB4.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
