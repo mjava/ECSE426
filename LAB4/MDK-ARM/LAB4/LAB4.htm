@@ -3,7 +3,7 @@
 <title>Static Call Graph - [LAB4\LAB4.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image LAB4\LAB4.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Fri Mar 16 01:34:08 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Fri Mar 16 14:08:55 2018
 <BR><P>
 <H3>Maximum Stack Usage =        176 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -988,7 +988,7 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
-<P><STRONG><a name="[63]"></a>getKeypadValue</STRONG> (Thumb, 274 bytes, Stack size 0 bytes, main.o(i.getKeypadValue))
+<P><STRONG><a name="[63]"></a>getKeypadValue</STRONG> (Thumb, 270 bytes, Stack size 0 bytes, main.o(i.getKeypadValue))
 <BR><BR>[Stack]<UL><LI>Max Depth = 136<LI>Call Chain = getKeypadValue &rArr; osSemaphoreWait &rArr; xQueueGenericReceive &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalSet
@@ -999,11 +999,10 @@ Global Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
-<P><STRONG><a name="[61]"></a>keypadTimer</STRONG> (Thumb, 132 bytes, Stack size 0 bytes, main.o(i.keypadTimer))
-<BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = keypadTimer &rArr; osThreadCreate &rArr; xTaskCreate &rArr; pvPortMalloc &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
+<P><STRONG><a name="[61]"></a>keypadTimer</STRONG> (Thumb, 94 bytes, Stack size 0 bytes, main.o(i.keypadTimer))
+<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = keypadTimer &rArr; osDelay &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
-<BR>[Calls]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
-<LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
+<BR>[Calls]<UL><LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_ADC_Start_IT
 <LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_TIM_PWM_Start
 </UL>
@@ -1012,18 +1011,18 @@ Global Symbols
 <P><STRONG><a name="[64]"></a>ledDriver</STRONG> (Thumb, 740 bytes, Stack size 16 bytes, main.o(i.ledDriver))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = ledDriver &rArr; osSignalWait &rArr; xTaskNotifyWait &rArr; prvAddCurrentTaskToDelayedList &rArr; vListInsert
 </UL>
-<BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
+<BR>[Calls]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalSet
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[a7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(.constdata)
 </UL>
-<P><STRONG><a name="[5b]"></a>main</STRONG> (Thumb, 146 bytes, Stack size 16 bytes, main.o(i.main))
+<P><STRONG><a name="[5b]"></a>main</STRONG> (Thumb, 134 bytes, Stack size 16 bytes, main.o(i.main))
 <BR><BR>[Stack]<UL><LI>Max Depth = 176<LI>Call Chain = main &rArr; osThreadCreate &rArr; xTaskCreate &rArr; pvPortMalloc &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
-<BR>[Calls]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
-<LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
+<BR>[Calls]<UL><LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
+<LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osKernelStart
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_Init
 <LI><a href="#[ac]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SystemClock_Config
@@ -1053,7 +1052,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[b9]"></a>osSemaphoreCreate</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, cmsis_os.o(i.osSemaphoreCreate))
+<P><STRONG><a name="[b8]"></a>osSemaphoreCreate</STRONG> (Thumb, 38 bytes, Stack size 8 bytes, cmsis_os.o(i.osSemaphoreCreate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = osSemaphoreCreate &rArr; xQueueGenericSend &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericSend
@@ -1096,7 +1095,7 @@ Global Symbols
 <LI><a href="#[60]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;generalTimer
 </UL>
 
-<P><STRONG><a name="[b8]"></a>osSignalWait</STRONG> (Thumb, 86 bytes, Stack size 32 bytes, cmsis_os.o(i.osSignalWait))
+<P><STRONG><a name="[b7]"></a>osSignalWait</STRONG> (Thumb, 86 bytes, Stack size 32 bytes, cmsis_os.o(i.osSignalWait))
 <BR><BR>[Stack]<UL><LI>Max Depth = 92<LI>Call Chain = osSignalWait &rArr; xTaskNotifyWait &rArr; prvAddCurrentTaskToDelayedList &rArr; vListInsert
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTaskNotifyWait
@@ -1115,14 +1114,13 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SysTick_Handler
 </UL>
 
-<P><STRONG><a name="[b7]"></a>osThreadCreate</STRONG> (Thumb, 46 bytes, Stack size 24 bytes, cmsis_os.o(i.osThreadCreate))
+<P><STRONG><a name="[b9]"></a>osThreadCreate</STRONG> (Thumb, 46 bytes, Stack size 24 bytes, cmsis_os.o(i.osThreadCreate))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = osThreadCreate &rArr; xTaskCreate &rArr; pvPortMalloc &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xTaskCreate
 <LI><a href="#[c8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;makeFreeRtosPriority
 </UL>
 <BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
-<LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;keypadTimer
 </UL>
 
 <P><STRONG><a name="[e2]"></a>pvPortMalloc</STRONG> (Thumb, 210 bytes, Stack size 24 bytes, heap_4.o(i.pvPortMalloc))
@@ -1170,10 +1168,10 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[db]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvInitialiseNewTask
 </UL>
 
-<P><STRONG><a name="[62]"></a>stateController</STRONG> (Thumb, 418 bytes, Stack size 24 bytes, main.o(i.stateController))
+<P><STRONG><a name="[62]"></a>stateController</STRONG> (Thumb, 390 bytes, Stack size 24 bytes, main.o(i.stateController))
 <BR><BR>[Stack]<UL><LI>Max Depth = 160<LI>Call Chain = stateController &rArr; osSemaphoreWait &rArr; xQueueGenericReceive &rArr; xTaskResumeAll &rArr; xTaskIncrementTick
 </UL>
-<BR>[Calls]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
+<BR>[Calls]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreWait
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
 <LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2d
@@ -1368,7 +1366,7 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;pvPortMalloc
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;xQueueGenericReset
 </UL>
-<BR>[Called By]<UL><LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
+<BR>[Called By]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
 </UL>
 
 <P><STRONG><a name="[c2]"></a>xQueueGenericReceive</STRONG> (Thumb, 360 bytes, Stack size 64 bytes, queue.o(i.xQueueGenericReceive))
@@ -1419,7 +1417,7 @@ Global Symbols
 <LI><a href="#[ee]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskPlaceOnEventList
 </UL>
 <BR>[Called By]<UL><LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
-<LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
+<LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreCreate
 </UL>
 
 <P><STRONG><a name="[c0]"></a>xQueueGiveFromISR</STRONG> (Thumb, 156 bytes, Stack size 16 bytes, queue.o(i.xQueueGiveFromISR))
@@ -1461,7 +1459,7 @@ Global Symbols
 <LI><a href="#[ce]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvAddNewTaskToReadyList
 </UL>
 <BR>[Called By]<UL><LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vTaskStartScheduler
-<LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
+<LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
 </UL>
 
 <P><STRONG><a name="[c4]"></a>xTaskGenericNotify</STRONG> (Thumb, 190 bytes, Stack size 24 bytes, tasks.o(i.xTaskGenericNotify))
@@ -1509,7 +1507,7 @@ Global Symbols
 <LI><a href="#[cf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;vPortEnterCritical
 <LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;prvAddCurrentTaskToDelayedList
 </UL>
-<BR>[Called By]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
+<BR>[Called By]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
 </UL>
 
 <P><STRONG><a name="[d9]"></a>xTaskPriorityDisinherit</STRONG> (Thumb, 144 bytes, Stack size 16 bytes, tasks.o(i.xTaskPriorityDisinherit))
@@ -1568,14 +1566,14 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[bf]"></a>inHandlerMode</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, cmsis_os.o(i.inHandlerMode))
-<BR><BR>[Called By]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
+<BR><BR>[Called By]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalWait
 <LI><a href="#[b2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSignalSet
 <LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreWait
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osSemaphoreRelease
 </UL>
 
 <P><STRONG><a name="[c8]"></a>makeFreeRtosPriority</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, cmsis_os.o(i.makeFreeRtosPriority))
-<BR><BR>[Called By]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
+<BR><BR>[Called By]<UL><LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osThreadCreate
 </UL>
 
 <P><STRONG><a name="[5e]"></a>prvTaskExitError</STRONG> (Thumb, 36 bytes, Stack size 0 bytes, port.o(i.prvTaskExitError))

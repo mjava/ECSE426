@@ -67,7 +67,6 @@ osThreadId keypadButtonThread;
 
 osSemaphoreId myBinarySem01Handle;
 osSemaphoreId keyboardButtonSemaphore;
-osSemaphoreId sleepSemaphore;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -188,9 +187,6 @@ int main(void)
 	osSemaphoreDef(keyboardButtonSem);
 	keyboardButtonSemaphore = osSemaphoreCreate(osSemaphore(keyboardButtonSem), 1);
 	
-	osSemaphoreDef(sleepSem);
-	sleepSemaphore = osSemaphoreCreate(osSemaphore(sleepSem), 1);
-
 	/* Create the thread(s) */
 	generalTimerThread = osThreadCreate(osThread(timerThread), NULL);
 	
@@ -526,7 +522,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Timer thread for display
+  */
 void generalTimer(void const * argument) {
 	while(1) {
 		osDelay(1);
@@ -536,11 +534,15 @@ void generalTimer(void const * argument) {
 			ledPosition++;
 			/*reset to 0 when ledPosition reaches 4*/
 			ledPosition = ledPosition % 4;
+			/*set signal for LED display to turn on*/
 			osSignalSet(displayThread,displaySignal);
 		}
 	}
 }
 
+/**
+  * @brief  Timer thread for keypad
+  */
 void keypadTimer(void const * argument) {
 	while(1) {
 		//debouncing
@@ -582,9 +584,13 @@ void keypadTimer(void const * argument) {
 	}
 }
 
+/**
+  * @brief  Thread for LED display
+  */
 void ledDriver(void const * argument){
 	int number = -1;
 	while(1) {
+		/*wait for display signal from general timer thread*/
 		osSignalWait(displaySignal,osWaitForever);
 		displaySignal = 0;
 		number = outputDigits[ledPosition];
@@ -711,11 +717,15 @@ void ledDriver(void const * argument){
 			HAL_GPIO_WritePin(CATHODE_2, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(CATHODE_3, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(CATHODE_4, GPIO_PIN_RESET);
+			/* set sleep signal for sleep state in FSM */
 			osSignalSet(stateThread, sleepSignal);
 		}
 	}
 }
 
+/**
+  * @brief  Thread for FSM control
+  */
 void stateController(void const * argument) {
 	while(1) {		
 		/* waiting for signal that a key has been pressed */
@@ -728,7 +738,7 @@ void stateController(void const * argument) {
 		osSemaphoreRelease(keyboardButtonSemaphore);
 		switch(state) {
 			case 0: //sleep mode			
-				/* terminate threads in sleep mode for power consumption */
+				/* wait for sleep signal from ledDriver (after cathodes have been turned off) */
 				osSignalWait(sleepSignal, osWaitForever);
 				/* Stop timer for PWM generation */
 				HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
@@ -736,14 +746,6 @@ void stateController(void const * argument) {
 				HAL_ADC_Stop_IT(&hadc1);
 				//osThreadTerminate(displayThread);
 				//osThreadTerminate(generalTimerThread);	
-				//return;
-				
-				
-				/* if pound held and sleep flag is on, turn on keypad */
-//				if(key == 11 && sleepKey && keyValid) {
-//					sleepKey = 0;
-//					keyValid = 0;
-//				}			
 				break;
 			case 1: //awake (reset) mode
 				//reset all LEDs to 0
@@ -827,6 +829,7 @@ void stateController(void const * argument) {
 				break;
 			case 4:
 				/* submit user inputte value to controller */
+				valueReturned = -1;
 				mathInput = (float) (buttonPressedOld + (buttonPressed/10.0));
 				pwmController(mathInput, mathOutput);
 				/* if star held and sleep flag is on, turn off keypad */
@@ -846,21 +849,14 @@ void stateController(void const * argument) {
 	}
 }
 			
-			
+/**
+  * @brief  Thread to retrieve value inputting on keypad
+  */
 void getKeypadValue(void const * argument) {
 	static int counter = 0;
 	while(1) {
 			/*go through rows and turn each one on, then check columns for input*/
 			for(counter =0; counter < 4; counter++) {
-				/*if(state == 0 && valueReturned != 11) {
-					osSemaphoreWait(sleepSemaphore, osWaitForever);
-					sleepCount = 0;
-					osSemaphoreRelease(sleepSemaphore);
-				} else if(state == 0) {
-						valueReturned = -1;
-				} else {
-						osSignalSet(stateThread,buttonSignal);
-				}*/
 				if (counter == 0){
 					HAL_GPIO_WritePin(ROW_1, GPIO_PIN_SET );
 					HAL_GPIO_WritePin(ROW_2, GPIO_PIN_RESET );
