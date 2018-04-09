@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "866922664412",
+    "firebase_url": "https://microp-6694e.firebaseio.com",
+    "project_id": "microp-6694e",
+    "storage_bucket": "microp-6694e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:866922664412:android:014ca41d0c779679",
+        "android_client_info": {
+          "package_name": "com.example.angus.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "866922664412-8satjkdobl9ur1lhborcd4460qqj09cq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-cKLYeiCjcQX36VQ6l5Trlyan1TMMX4g"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
