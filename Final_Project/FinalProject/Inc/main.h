@@ -63,8 +63,6 @@
 #define OTG_FS_PowerSwitchOn_GPIO_Port GPIOC
 #define PDM_OUT_Pin GPIO_PIN_3
 #define PDM_OUT_GPIO_Port GPIOC
-#define B1_Pin GPIO_PIN_0
-#define B1_GPIO_Port GPIOA
 #define I2S3_WS_Pin GPIO_PIN_4
 #define I2S3_WS_GPIO_Port GPIOA
 #define SPI1_SCK_Pin GPIO_PIN_5
@@ -122,6 +120,11 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
+#define PI 3.14159265358979323846
+#define TAP_DETECT_THRESH 10
+#define TAP_VALIDATE_THRESH 1000
+extern volatile int tapTimerDetect;
+extern volatile int tapTimerValidate;
 
 /* USER CODE END Private defines */
 

@@ -1,0 +1,104 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.24.2.0
+Copyright (C) 2017 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Maana Javadi, McGill, LIC=----
+ 
+Tool Versions:
+Toolchain:       MDK-Lite  Version: 5.24.1
+Toolchain Path:  C:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 5 (build 528)
+Assembler:       Armasm.exe V5.06 update 5 (build 528)
+Linker/Locator:  ArmLink.exe V5.06 update 5 (build 528)
+Library Manager: ArmAr.exe V5.06 update 5 (build 528)
+Hex Converter:   FromElf.exe V5.06 update 5 (build 528)
+CPU DLL:         SARMCM3.DLL V5.24.1
+Dialog DLL:      DCM.DLL V1.16.0.0
+Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.1.0
+Dialog DLL:      TCM.DLL V1.32.0.0
+ 
+<h2>Project:</h2>
+C:\Users\Maana\Documents\McGill\Semester 12\ECSE 426\ECSE426\Final_Project\FinalProject\MDK-ARM\FinalProject.uvprojx
+Project File Date:  04/08/2018
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'FinalProject'
+compiling stm32f4xx_it.c...
+compiling system_stm32f4xx.c...
+compiling stm32f4xx_hal_msp.c...
+compiling fput_debug.c...
+compiling LIS3DSH.c...
+..\Src\LIS3DSH.c(369): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          *out =(float)(
+IS3DSH_SENSITIVITY_2G * (float)aggregateResult);
+..\Src\LIS3DSH.c(379): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          *out =(float)(
+IS3DSH_SENSITIVITY_4G * (float)aggregateResult);
+..\Src\LIS3DSH.c(389): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          *out =(float)(
+IS3DSH_SENSITIVITY_6G * (float)aggregateResult);
+..\Src\LIS3DSH.c(399): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          *out =(float)(
+IS3DSH_SENSITIVITY_8G * (float)aggregateResult);
+..\Src\LIS3DSH.c(409): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+          *out =(float)(
+IS3DSH_SENSITIVITY_16G * (float)aggregateResult);
+..\Src\LIS3DSH.c: 5 warnings, 0 errors
+compiling main.c...
+../Src/main.c(674): warning:  #1035-D: single-precision operand implicitly converted to double-precision
+  			filterOutput = filterOutput * 3.0 / 255.0; /* 8bit conversion, Vref at 3V */
+../Src/main.c: 1 warning, 0 errors
+compiling stm32f4xx_hal_dma.c...
+compiling stm32f4xx_hal_gpio.c...
+compiling stm32f4xx_hal_adc_ex.c...
+compiling stm32f4xx_hal_pwr_ex.c...
+compiling stm32f4xx_hal_rcc.c...
+compiling stm32f4xx_hal_dma_ex.c...
+compiling stm32f4xx_hal_flash_ramfunc.c...
+compiling stm32f4xx_hal_cortex.c...
+compiling stm32f4xx_hal.c...
+compiling stm32f4xx_hal_flash.c...
+compiling stm32f4xx_hal_flash_ex.c...
+compiling stm32f4xx_hal_adc.c...
+compiling stm32f4xx_hal_tim_ex.c...
+compiling stm32f4xx_hal_rcc_ex.c...
+compiling stm32f4xx_hal_tim.c...
+compiling stm32f4xx_hal_pwr.c...
+compiling stm32f4xx_hal_uart.c...
+compiling stm32f4_xx_hal_spi.c...
+stm32f4_xx_hal_spi.c(3192): warning:  #1-D: last line of file ends without a newline
+  /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+stm32f4_xx_hal_spi.c: 1 warning, 0 errors
+linking...
+Program Size: Code=19184 RO-data=768 RW-data=96 ZI-data=13352  
+"FinalProject\FinalProject.axf" - 0 Error(s), 7 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: ARM
+                http://www.keil.com/pack/ARM.CMSIS.5.3.0.pack
+                ARM.CMSIS.5.3.0
+                CMSIS (Cortex Microcontroller Software Interface Standard)
+   * Component: CORE Version: 5.1.1
+
+Package Vendor: Keil
+                http://www.keil.com/pack/Keil.STM32F4xx_DFP.2.11.0.pack
+                Keil.STM32F4xx_DFP.2.11.0
+                STMicroelectronics STM32F4 Series Device Support, Drivers and Examples
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_FinalProject
+  C:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include
+  C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.11.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include
+
+<h2>Collection of Component Files used:</h2>
+
+   * Component: ARM::CMSIS:CORE:5.1.1
+Build Time Elapsed:  00:01:26
+</pre>
+</body>
+</html>

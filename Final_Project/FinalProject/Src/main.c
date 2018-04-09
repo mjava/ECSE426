@@ -38,45 +38,69 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_hal.h"
-#include "lis3dsh.h"
 
 /* USER CODE BEGIN Includes */
+#include "lis3dsh.h"
+#include "math.h"
 
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
-SPI_HandleTypeDef hspi1;
-
 TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart5;
 
-LIS3DSH_InitTypeDef 		Acc_instance;
-
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+LIS3DSH_InitTypeDef 		Acc_instance;
 uint8_t status;
-	float Buffer[3];
-	float accX, accY, accZ;
-	uint8_t MyFlag = 0;
-	
+float Buffer[3];
+float accX, accY, accZ;
+uint8_t MyFlag = 0;
+
+uint32_t adcConversion = 0;
+int x[5] = {0};
+float filterOutput;
+
+int state = 0;
+volatile int tapTimerDetect = 0;
+volatile int tapTimerValidate = 0;
+volatile int accelerometerTimer = 0;
+
+int numberOfTaps = 0;
+float initialData[3];
+float newData[3];
+
+const int accelerometerDataBufferSize = 1000;
+uint8_t pitchDataBuffer[accelerometerDataBufferSize];
+uint8_t rollDataBuffer[accelerometerDataBufferSize];
+
+float pitch, roll;
+int dataCollectionComplete = 0;
+int recording = 0;
+int recordingComplete = 0;
+
+const int audioDataBufferSize = 10000;
+uint8_t audioDataBuffer[audioDataBufferSize];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_UART5_Init(void);
 
-void initializeACC			(void);
-
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
+void initializeACC			(void);
+
+void FIR_C(uint32_t input, float* filterOutput);
+float pitchCalculation(float* accelerometerData);
+float rollCalculation(float* accelerometerData);
+void tapDetection(float* newData, float* initialData);
 
 /* USER CODE END PFP */
 
@@ -114,12 +138,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ADC1_Init();
-  MX_SPI1_Init();
   MX_TIM3_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 	initializeACC	();	// Like any other peripheral, you need to initialize it. Refer to the its driver to learn more.
-
+	uint8_t header1[] = {0x0F};
+	uint8_t header2[] = {0xF0};
+	
+	HAL_TIM_Base_Start(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -127,28 +153,141 @@ int main(void)
   while (1)
   {
 
-		if (MyFlag/200)
-		{
+//		if (MyFlag/200)
+//		{
 
-			MyFlag = 0;
+			//MyFlag = 0;
 			//Reading the accelerometer status register
 				LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
-				//The first four bits denote if we have new data on all XYZ axes, 
+				//The first four bits denote if we have new data on all axisValues axes, 
 		   	//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
 				if ((status & 0x0F) != 0x00)
 				{
-					LIS3DSH_ReadACC(&Buffer[0]);
-					accX = (float)Buffer[0];
-					accY = (float)Buffer[1];
-					accZ = (float)Buffer[2];
-					printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
+					LIS3DSH_ReadACC(initialData);
+//					accX = (float)Buffer[0];
+//					accY = (float)Buffer[1];
+//					accZ = (float)Buffer[2];
+//					printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
 				}
+			
+			switch(state) {
+				case 0:
+					printf("in state 0\n");
+					if(tapTimerDetect >= TAP_DETECT_THRESH) {
+						tapTimerDetect = 0;
+						
+						LIS3DSH_Read(&status, LIS3DSH_STATUS, 1);
+						
+						if ((status & 0x0F) != 0x00)
+						{
+							LIS3DSH_ReadACC(newData);
+							accX = (float)newData[0];
+							accY = (float)newData[1];
+							accZ = (float)newData[2];
+							printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
+							
+							tapDetection(newData,initialData);
+							
+							initialData[0] = newData[0];
+							initialData[1] = newData[1];
+							initialData[2] = newData[2];
+						}
+						
+						if(tapTimerValidate >= TAP_VALIDATE_THRESH) {
+							tapTimerValidate = 0;
+							if(numberOfTaps == 2) {
+								printf("2 taps detected\n");
+								state = 2;
+								numberOfTaps = 0;
+							}else if(numberOfTaps ==1) {
+								printf("1 tap detected\n");
+								state = 1;
+								numberOfTaps = 0;
+							}
+						}
+					}
+				case 1:
+					printf("in state 1\n");
+					HAL_ADC_Start_IT(&hadc1);
+					recording = 1;
+					//turn on green LED to indicate recording
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15 ,GPIO_PIN_RESET);
+				
+					if(recordingComplete) {
+						recording = 0;
+						
+						//turn on red LED for transmission
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_SET);
+						
+						HAL_UART_Transmit(&huart5,header1,sizeof(header1),1000);
+						HAL_UART_Transmit(&huart5,audioDataBuffer,audioDataBufferSize,1000);
+						
+						recordingComplete = 0;
+					}
+					
+					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
+						state = 0;
+					}
+				
+				case 2:
+					printf("in state 2\n");
+					//turn on orange LED to indicate accelerometer data
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_SET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15 ,GPIO_PIN_RESET);
+					
+					for(int i = 0; i < accelerometerDataBufferSize;) {
+						LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
+						//The first four bits denote if we have new data on all XYZ axes, 
+						//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
+						if ((status & 0x0F) != 0x00)
+						{
+							// read ACC
+							LIS3DSH_ReadACC(newData);
+							
+							pitch = pitchCalculation(newData);	
+							roll = rollCalculation(newData);
+							// save to buffer
+							uint8_t anglePitch = (uint8_t)(pitch+90); // maybe take out 90
+							uint8_t angleRoll = (uint8_t)(roll+90);
+							pitchDataBuffer[i] = anglePitch;
+							rollDataBuffer[i] = angleRoll;
+							printf("pitch: %f, roll: %f \n", pitch, roll);
+							printf("pitch: %d, roll: %d \n", anglePitch, angleRoll);		
+							i++;
+							if(i == accelerometerDataBufferSize-1) {
+								dataCollectionComplete = 1;
+							}
+						}
+					}
+					
+					if(dataCollectionComplete) {
+						//turn on red LED for transmission
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_SET);
+						
+						HAL_UART_Transmit(&huart5,header1,sizeof(header1),1000);
+						HAL_UART_Transmit(&huart5,pitchDataBuffer,accelerometerDataBufferSize,1000);
+						
+						HAL_UART_Transmit(&huart5,header2,sizeof(header2),1000);
+						HAL_UART_Transmit(&huart5,rollDataBuffer,accelerometerDataBufferSize,1000);
+						
+						dataCollectionComplete = 0;
+					}
+					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
+						state = 0;
+					}					
 			}
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
-  }
+		}
   /* USER CODE END 3 */
 
 }
@@ -247,37 +386,12 @@ static void MX_ADC1_Init(void)
 
 }
 
-/* SPI1 init function */
-static void MX_SPI1_Init(void)
-{
-
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
 /* TIM3 init function */
 static void MX_TIM3_Init(void)
 {
 
   TIM_ClockConfigTypeDef sClockSourceConfig;
   TIM_MasterConfigTypeDef sMasterConfig;
-  TIM_OC_InitTypeDef sConfigOC;
 
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
@@ -295,23 +409,9 @@ static void MX_TIM3_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -345,6 +445,9 @@ static void MX_UART5_Init(void)
         * EXTI
      PC3   ------> I2S2_SD
      PA4   ------> I2S3_WS
+     PA5   ------> SPI1_SCK
+     PA6   ------> SPI1_MISO
+     PA7   ------> SPI1_MOSI
      PB10   ------> I2S2_CK
      PC7   ------> I2S3_MCK
      PA9   ------> USB_OTG_FS_VBUS
@@ -400,11 +503,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
   HAL_GPIO_Init(PDM_OUT_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_EVT_RISING;
+  /*Configure GPIO pin : PA0 */
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : I2S3_WS_Pin */
   GPIO_InitStruct.Pin = I2S3_WS_Pin;
@@ -413,6 +516,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
   HAL_GPIO_Init(I2S3_WS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SPI1_SCK_Pin SPI1_MISO_Pin SPI1_MOSI_Pin */
+  GPIO_InitStruct.Pin = SPI1_SCK_Pin|SPI1_MISO_Pin|SPI1_MOSI_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BOOT1_Pin */
   GPIO_InitStruct.Pin = BOOT1_Pin;
@@ -479,9 +590,62 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(MEMS_INT2_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+   * @brief Calculate pitch
+	 * @param axisValues: x, y, z values of acceleration vector
+   * @retval pitch: calculated pitch value in degrees
+   */
+float pitchCalculation(float* axisValues)
+{
+	//float pitch;
+	/*axisValues[0] = x, axisValues[1] = y, axisValues[2] = z*/
+	pitch = atan2(axisValues[0],sqrt(pow(axisValues[1],2)+pow(axisValues[2],2))) * 180/PI;
+	
+	return pitch;
+}
+/**
+   * @brief Calculate roll
+	 * @param axisValues: x, y, z values of acceleration vector
+   * @retval roll: calculated roll value in degrees
+   */
+float rollCalculation(float* axisValues)
+{
+	//float roll;
+	/*axisValues[0] = x, axisValues[1] = y, axisValues[2] = z*/
+	roll = atan2(axisValues[1],sqrt(pow(axisValues[0],2)+pow(axisValues[2],2))) * 180/PI;
+	
+	return roll;
+}
+
+/**
+   * @brief A function used to see a tap 
+   * The difference is needed and a threshold of the difference of 2 values
+   * Recall that it's at 25samples/sec so don't forget to X25 for threshold and difference
+	 * @param Takes in values axisValues, sets a flag if "tap" is found
+   * @retval None
+   */
+void tapDetection(float* currentAxis, float* previousAxis)
+{
+
+	float xDifference = (currentAxis[0] - previousAxis[0]);
+	float yDifference = (currentAxis[1] - previousAxis[1]);
+	float zDifference = (currentAxis[2] - previousAxis[2]);
+	
+	
+	if ((fabs)(xDifference) >= 80.0 || (fabs)(yDifference) >= 80.0 || (fabs)(zDifference) >= 60.0)
+	{
+		numberOfTaps++;
+	}
+	
+}
 
 void initializeACC(void){
 	
@@ -501,6 +665,54 @@ void initializeACC(void){
 	
 	LIS3DSH_DataReadyInterruptConfig(&ACC_Interrupt_Config);
 	*/
+}
+
+/**
+  * @brief  Retrive ADC conversion value and put through filter and RMS calculation
+  * @param  hadc: pointer to ADC handler
+  * @retval None
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	
+	if(recording) {
+		for(int j = 0; j<audioDataBufferSize;j++) {
+			adcConversion = HAL_ADC_GetValue(hadc);
+	
+			FIR_C(adcConversion, &filterOutput);
+		
+			filterOutput = filterOutput * 3.0 / 255.0; /* 8bit conversion, Vref at 3V */
+			
+			audioDataBuffer[j] = (uint8_t) filterOutput;
+			
+			if(j==audioDataBufferSize) {
+				printf("recording complete\n");
+				recordingComplete = 1;
+			}
+		}
+	}
+}
+
+/**
+  * @brief  Filter inputted value from ADC conversion
+	* @param  input: value from ADC conversion
+	* @param 	output: pointer to array of outputted filter values
+  * @retval None
+  */
+void FIR_C(uint32_t input, float *output) {
+	
+	float coefficients[5] = {0.2,0.2,0.2,0.2,0.2};
+	/* moving window */
+	for(int i = 0; i < 4; i++){
+		x[i] = x[i+1];
+	}
+	/* set new input to final value in window */
+	x[4] = input;
+	float returnedOutput = 0;
+	/* sum of products of coefficient and input */
+	for(int i = 0; i < 5; i++){
+		returnedOutput += x[i] * coefficients[4-i];
+	}
+	*output = returnedOutput;
 }
 
 /* USER CODE END 4 */

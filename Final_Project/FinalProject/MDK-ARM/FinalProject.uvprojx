@@ -10,6 +10,7 @@
       <TargetName>FinalProject</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pCCUsed>5060528::V5.06 update 5 (build 528)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -335,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;   ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;   ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Inc;      ../Drivers/STM32F4xx_HAL_Driver/Inc;      ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;      ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;      ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -415,19 +416,14 @@
               <FilePath>../Src/main.c</FilePath>
             </File>
             <File>
-              <FileName>LIS3DSH.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\LIS3DSH.h</FilePath>
+              <FileName>fput_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\FinalPrj\MDK-ARM\fput_debug.c</FilePath>
             </File>
             <File>
               <FileName>LIS3DSH.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\LIS3DSH.c</FilePath>
-            </File>
-            <File>
-              <FileName>fput_debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\FinalPrj\MDK-ARM\fput_debug.c</FilePath>
+              <FilePath>..\Src\LIS3DSH.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -453,11 +449,6 @@
               <FileName>stm32f4xx_hal_pwr_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c</FilePath>
             </File>
             <File>
               <FileName>stm32f4xx_hal_dma_ex.c</FileName>
@@ -523,6 +514,11 @@
               <FileName>stm32f4xx_hal_uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4_xx_hal_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\stm32f4_xx_hal_spi.c</FilePath>
             </File>
           </Files>
         </Group>
