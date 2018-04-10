@@ -582,56 +582,6 @@ typedef struct
 *******************************************************************************/
 #define LIS3DSH_FIFO_SRC_ADDR                0x2F
 
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection Configuration Register
-*  Write only register
-*  Default value: 0x00
-*  6:0 ZD, ZS, YD, YS, XD, XS: Click Detection Configuration
-*******************************************************************************/
-#define LIS3DSH_CLICK_CFG										 0x38
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection SOURCE Register
-*  Write only register
-*  Default value: 0x00
-*  6:0 IA, DCLICK, SCLICK, SIGN, Z, Y, X: Click Detection SOURCE 
-*******************************************************************************/
-#define LIS3DSH_CLICK_SRC										 0x39
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection THRESHOLD Register
-*  Write only register
-*  Default value: 0x00
-*  7:0 LIR_Click, Ths: Click Detection THRESHOLD 
-*******************************************************************************/
-#define LIS3DSH_CLICK_THS										 0x3A
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection TIME LIMIT Register
-*  Write only register
-*  Default value: 0x00
-*  6:0 TLI6-TLI0: Click Detection TIME LIMIT
-*******************************************************************************/
-#define LIS3DSH_TIME_LIMIT									 0x3B
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection TIME LATENCY Register
-*  Write only register
-*  Default value: 0x00
-*  7:0 TLA7-TLA0: Click Detection TIME LATENCY
-*******************************************************************************/
-#define LIS3DSH_TIME_LATENCY								 0x3C
-
-/*******************************************************************************
-*  ST1_X Register: Click Detection Configuration Register
-*  Write only register
-*  Default value: 0x00
-*  6:0 ST1_7-ST1_0: Click Detection Configuration
-*******************************************************************************/
-#define LIS3DSH_TIME_WINDOW									 0x3D
-
-
 /*******************************************************************************
 *  ST1_X Register: State Machine 1 Code Registers
 *  Write only register

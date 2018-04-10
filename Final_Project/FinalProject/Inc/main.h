@@ -121,8 +121,8 @@
 
 /* USER CODE BEGIN Private defines */
 #define PI 3.14159265358979323846
-#define TAP_DETECT_THRESH 10
-#define TAP_VALIDATE_THRESH 1000
+#define TAP_DETECT_THRESH 100
+#define TAP_VALIDATE_THRESH 300
 extern volatile int tapTimerDetect;
 extern volatile int tapTimerValidate;
 

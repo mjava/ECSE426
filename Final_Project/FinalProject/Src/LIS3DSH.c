@@ -161,6 +161,7 @@ void LIS3DSH_Init(LIS3DSH_InitTypeDef *LIS3DSH_InitStruct)
 
 	/* Write value to MEMS CTRL_REG5 regsister */
 	LIS3DSH_Write(&ctrl, LIS3DSH_CTRL_REG5, 1);
+	
 }
 
 /**

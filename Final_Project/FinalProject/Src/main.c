@@ -71,7 +71,9 @@ volatile int accelerometerTimer = 0;
 
 int numberOfTaps = 0;
 float initialData[3];
+float previousData[3];
 float newData[3];
+float zDifference1, zDifference2;
 
 const int accelerometerDataBufferSize = 1000;
 uint8_t pitchDataBuffer[accelerometerDataBufferSize];
@@ -100,7 +102,7 @@ void initializeACC			(void);
 void FIR_C(uint32_t input, float* filterOutput);
 float pitchCalculation(float* accelerometerData);
 float rollCalculation(float* accelerometerData);
-void tapDetection(float* newData, float* initialData);
+void tapDetection(float* newData, float* previousData, float* initialData);
 
 /* USER CODE END PFP */
 
@@ -144,7 +146,6 @@ int main(void)
 	initializeACC	();	// Like any other peripheral, you need to initialize it. Refer to the its driver to learn more.
 	uint8_t header1[] = {0x0F};
 	uint8_t header2[] = {0xF0};
-	
 	HAL_TIM_Base_Start(&htim3);
   /* USER CODE END 2 */
 
@@ -170,8 +171,8 @@ int main(void)
 //					printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
 				}
 			
-			switch(state) {
-				case 0:
+			while(state == 0) {
+				//case 0:
 					printf("in state 0\n");
 					if(tapTimerDetect >= TAP_DETECT_THRESH) {
 						tapTimerDetect = 0;
@@ -180,33 +181,47 @@ int main(void)
 						
 						if ((status & 0x0F) != 0x00)
 						{
-							LIS3DSH_ReadACC(newData);
-							accX = (float)newData[0];
-							accY = (float)newData[1];
-							accZ = (float)newData[2];
-							printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
+							LIS3DSH_ReadACC(previousData);
+						//	accX = (float)previousData[0];
+							//accY = (float)previousData[1];
+							accZ = (float)previousData[2];
 							
-							tapDetection(newData,initialData);
-							
-							initialData[0] = newData[0];
-							initialData[1] = newData[1];
-							initialData[2] = newData[2];
-						}
-						
-						if(tapTimerValidate >= TAP_VALIDATE_THRESH) {
-							tapTimerValidate = 0;
-							if(numberOfTaps == 2) {
-								printf("2 taps detected\n");
-								state = 2;
-								numberOfTaps = 0;
-							}else if(numberOfTaps ==1) {
-								printf("1 tap detected\n");
-								state = 1;
-								numberOfTaps = 0;
-							}
+//							LIS3DSH_Read(&status, LIS3DSH_STATUS, 1);
+//							//printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
+//							if ((status & 0x0F) != 0x00)
+//							{	
+								LIS3DSH_ReadACC(newData);
+							//	accX = (float)newData[0];
+								//accY = (float)newData[1];
+								accZ = (float)newData[2];
+								
+								tapDetection(newData,previousData,initialData);
+								
+								//initialData[0] = previousData[0];
+								//initialData[1] = previousData[1];
+								initialData[2] = newData[2];
+								
+//								previousData[0] = newData[0];
+//								previousData[1] = newData[1];
+//								previousData[2] = newData[2];
+							//}
 						}
 					}
-				case 1:
+					if(tapTimerValidate >= TAP_VALIDATE_THRESH) {
+						tapTimerValidate = 0;
+						if(numberOfTaps >= 2) {
+							printf("2 taps detected\n");
+							state = 2;
+							numberOfTaps = 0;
+						}else if(numberOfTaps ==1) {
+							printf("1 tap detected\n");
+							state = 1;
+							numberOfTaps = 0;
+						}
+					}
+				}
+			while(state==1) {
+				//case 1:
 					printf("in state 1\n");
 					HAL_ADC_Start_IT(&hadc1);
 					recording = 1;
@@ -227,13 +242,15 @@ int main(void)
 						HAL_UART_Transmit(&huart5,audioDataBuffer,audioDataBufferSize,1000);
 						
 						recordingComplete = 0;
+						state = 0;
 					}
 					
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
 						state = 0;
 					}
-				
-				case 2:
+				}
+				//case 2:
+				while(state == 2) {
 					printf("in state 2\n");
 					//turn on orange LED to indicate accelerometer data
 					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_RESET);
@@ -257,8 +274,8 @@ int main(void)
 							uint8_t angleRoll = (uint8_t)(roll+90);
 							pitchDataBuffer[i] = anglePitch;
 							rollDataBuffer[i] = angleRoll;
-							printf("pitch: %f, roll: %f \n", pitch, roll);
-							printf("pitch: %d, roll: %d \n", anglePitch, angleRoll);		
+							//printf("pitch: %f, roll: %f \n", pitch, roll);
+							//printf("pitch: %d, roll: %d \n", anglePitch, angleRoll);		
 							i++;
 							if(i == accelerometerDataBufferSize-1) {
 								dataCollectionComplete = 1;
@@ -268,6 +285,7 @@ int main(void)
 					
 					if(dataCollectionComplete) {
 						//turn on red LED for transmission
+						printf("transmitting data\n");
 						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_RESET);
 						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_SET);
 						
@@ -278,6 +296,7 @@ int main(void)
 						HAL_UART_Transmit(&huart5,rollDataBuffer,accelerometerDataBufferSize,1000);
 						
 						dataCollectionComplete = 0;
+						state = 0;
 					}
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
 						state = 0;
@@ -626,23 +645,23 @@ float rollCalculation(float* axisValues)
 }
 
 /**
-   * @brief A function used to see a tap 
-   * The difference is needed and a threshold of the difference of 2 values
-   * Recall that it's at 25samples/sec so don't forget to X25 for threshold and difference
+   * @brief Recognize a tap by checking difference between 3 points
 	 * @param Takes in values axisValues, sets a flag if "tap" is found
    * @retval None
    */
-void tapDetection(float* currentAxis, float* previousAxis)
+void tapDetection(float* currentAxis, float* previousAxis, float* initialAxis)
 {
 
-	float xDifference = (currentAxis[0] - previousAxis[0]);
-	float yDifference = (currentAxis[1] - previousAxis[1]);
-	float zDifference = (currentAxis[2] - previousAxis[2]);
+	//float xDifference1 = (previousAxis[0] - initialAxis[0]);
+	//float yDifference1 = (previousAxis[1] - initialAxis[1]);
+	 zDifference1 = (initialAxis[2]-previousAxis[2]);
+	 zDifference2 = (currentAxis[2]-previousAxis[2]);
 	
-	
-	if ((fabs)(xDifference) >= 80.0 || (fabs)(yDifference) >= 80.0 || (fabs)(zDifference) >= 60.0)
+	printf("z: %f\n", zDifference1);
+	if ((fabs)(zDifference1) >= 2.0 && (fabs)(zDifference2) >= 2.0)
 	{
 		numberOfTaps++;
+		printf("taps: %d\n", numberOfTaps);
 	}
 	
 }
@@ -658,6 +677,7 @@ void initializeACC(void){
 	
 	LIS3DSH_Init(&Acc_instance);	
 	
+
 	/* Enabling interrupt conflicts with push button
   ACC_Interrupt_Config.Dataready_Interrupt	= LIS3DSH_DATA_READY_INTERRUPT_ENABLED;
 	ACC_Interrupt_Config.Interrupt_signal			= LIS3DSH_ACTIVE_HIGH_INTERRUPT_SIGNAL;
