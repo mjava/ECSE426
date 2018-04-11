@@ -84,7 +84,7 @@ int dataCollectionComplete = 0;
 int recording = 0;
 int recordingComplete = 0;
 
-const int audioDataBufferSize = 64000;
+const int audioDataBufferSize = 10000;
 uint8_t audioDataBuffer[audioDataBufferSize];
 /* USER CODE END PV */
 
@@ -147,7 +147,6 @@ int main(void)
 	uint8_t header1[] = {0x0F};
 	uint8_t header2[] = {0xF0};
 	HAL_TIM_Base_Start(&htim3);
-	HAL_ADC_Start_IT(&hadc1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -223,7 +222,8 @@ int main(void)
 				}
 			while(state==1) {
 				//case 1:
-					//printf("in state 1\n");
+					printf("in state 1\n");
+					HAL_ADC_Start_IT(&hadc1);
 					recording = 1;
 					//turn on green LED to indicate recording
 					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_SET);
@@ -235,14 +235,14 @@ int main(void)
 						recording = 0;
 						
 						//turn on red LED for transmission
-						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_RESET);
+						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13 ,GPIO_PIN_RESET);
 						HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14 ,GPIO_PIN_SET);
-						printf("transmitting\n");
+						
 						HAL_UART_Transmit(&huart5,header1,sizeof(header1),1000);
 						HAL_UART_Transmit(&huart5,audioDataBuffer,audioDataBufferSize,1000);
 						
 						recordingComplete = 0;
-						//state = 0;
+						state = 0;
 					}
 					
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
@@ -373,7 +373,7 @@ static void MX_ADC1_Init(void)
 {
 
   ADC_ChannelConfTypeDef sConfig;
-	
+
     /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
     */
   hadc1.Instance = ADC1;
@@ -415,7 +415,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 10499;
+  htim3.Init.Period = 0;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
@@ -695,7 +695,6 @@ void initializeACC(void){
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	
 	if(recording) {
-		//printf("getting ADC value\n");
 		for(int j = 0; j<audioDataBufferSize;j++) {
 			adcConversion = HAL_ADC_GetValue(hadc);
 	
@@ -705,7 +704,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 			
 			audioDataBuffer[j] = (uint8_t) filterOutput;
 			
-			if(j==audioDataBufferSize-1) {
+			if(j==audioDataBufferSize) {
 				printf("recording complete\n");
 				recordingComplete = 1;
 			}
