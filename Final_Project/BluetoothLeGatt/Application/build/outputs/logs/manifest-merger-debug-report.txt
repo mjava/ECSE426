@@ -1,0 +1,146 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:1-52:12
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:1-52:12
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:1-52:12
+MERGED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:appcompat-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.0.1.aar/7ccdb1bcd0d65ea8c227db102fac6758/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:support-v4:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v4-25.0.1.aar/eb3ca3f965527af1a8bd63f3aa68f4ee/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:cardview-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/cardview-v7-25.0.1.aar/12cb5a4b46f35c3ac0d2442bece61efc/AndroidManifest.xml:17:1-24:12
+MERGED from [com.android.support:support-fragment:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-fragment-25.0.1.aar/e9617af68db6798fbada035b0a6ea646/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:support-media-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.0.1.aar/1b8ee23bcf0e178ec0bbec3f486e125d/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:support-core-utils:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.0.1.aar/360d04973101c875e81d2b3909adc149/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:support-core-ui:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.0.1.aar/503604fbb0655f31a493e4662689c538/AndroidManifest.xml:17:1-27:12
+MERGED from [com.android.support:animated-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.0.1.aar/8abc691697bc32a30f27fc04979c08f6/AndroidManifest.xml:17:1-24:12
+MERGED from [com.android.support:support-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.0.1.aar/e847ee8886c4b157390c0fb9ad3e9f00/AndroidManifest.xml:17:1-25:12
+MERGED from [com.android.support:support-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-compat-25.0.1.aar/f6f18ddff0f6b2faf6b943116ca8125e/AndroidManifest.xml:17:1-27:12
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:1-52:12
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:1-52:12
+	package
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:21:5-50
+	android:versionName
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:23:5-30
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:20:11-69
+	android:versionCode
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:22:5-28
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+uses-feature#android.hardware.bluetooth_le
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:31:5-89
+	android:required
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:31:64-87
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:31:19-63
+uses-permission#android.permission.BLUETOOTH
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:33:5-67
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:33:22-65
+uses-permission#android.permission.BLUETOOTH_ADMIN
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:34:5-73
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:34:22-71
+uses-permission#android.permission.ACCESS_FINE_LOCATION
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:35:5-79
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:35:22-76
+uses-permission#android.permission.ACCESS_COARSE_LOCATION
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:36:5-81
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:36:22-78
+application
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:38:5-50:19
+MERGED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:appcompat-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.0.1.aar/7ccdb1bcd0d65ea8c227db102fac6758/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:appcompat-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.0.1.aar/7ccdb1bcd0d65ea8c227db102fac6758/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-v4:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v4-25.0.1.aar/eb3ca3f965527af1a8bd63f3aa68f4ee/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-v4:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v4-25.0.1.aar/eb3ca3f965527af1a8bd63f3aa68f4ee/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:cardview-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/cardview-v7-25.0.1.aar/12cb5a4b46f35c3ac0d2442bece61efc/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:cardview-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/cardview-v7-25.0.1.aar/12cb5a4b46f35c3ac0d2442bece61efc/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-fragment:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-fragment-25.0.1.aar/e9617af68db6798fbada035b0a6ea646/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-fragment:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-fragment-25.0.1.aar/e9617af68db6798fbada035b0a6ea646/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-media-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.0.1.aar/1b8ee23bcf0e178ec0bbec3f486e125d/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-media-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.0.1.aar/1b8ee23bcf0e178ec0bbec3f486e125d/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-core-utils:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.0.1.aar/360d04973101c875e81d2b3909adc149/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-core-utils:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.0.1.aar/360d04973101c875e81d2b3909adc149/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-core-ui:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.0.1.aar/503604fbb0655f31a493e4662689c538/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-core-ui:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.0.1.aar/503604fbb0655f31a493e4662689c538/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:animated-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.0.1.aar/8abc691697bc32a30f27fc04979c08f6/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:animated-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.0.1.aar/8abc691697bc32a30f27fc04979c08f6/AndroidManifest.xml:22:5-20
+MERGED from [com.android.support:support-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.0.1.aar/e847ee8886c4b157390c0fb9ad3e9f00/AndroidManifest.xml:23:5-20
+MERGED from [com.android.support:support-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.0.1.aar/e847ee8886c4b157390c0fb9ad3e9f00/AndroidManifest.xml:23:5-20
+MERGED from [com.android.support:support-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-compat-25.0.1.aar/f6f18ddff0f6b2faf6b943116ca8125e/AndroidManifest.xml:25:5-20
+MERGED from [com.android.support:support-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-compat-25.0.1.aar/f6f18ddff0f6b2faf6b943116ca8125e/AndroidManifest.xml:25:5-20
+	android:label
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:38:18-50
+	android:icon
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:39:9-45
+	android:theme
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:40:9-56
+activity#com.example.android.bluetoothlegatt.DeviceScanActivity
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:41:9-47:20
+	android:label
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:42:13-45
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:41:19-53
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:43:13-46:29
+action#android.intent.action.MAIN
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:44:17-68
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:44:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:45:17-76
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:45:27-74
+activity#com.example.android.bluetoothlegatt.DeviceControlActivity
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:48:9-58
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:48:19-56
+service#com.example.android.bluetoothlegatt.BluetoothLeService
+ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:49:9-77
+	android:enabled
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:49:53-75
+	android:name
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml:49:18-52
+uses-sdk
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+MERGED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:21:5-23:55
+MERGED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:21:5-23:55
+MERGED from [com.android.support:appcompat-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.0.1.aar/7ccdb1bcd0d65ea8c227db102fac6758/AndroidManifest.xml:21:5-23:78
+MERGED from [com.android.support:appcompat-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/appcompat-v7-25.0.1.aar/7ccdb1bcd0d65ea8c227db102fac6758/AndroidManifest.xml:21:5-23:78
+MERGED from [com.android.support:support-v4:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v4-25.0.1.aar/eb3ca3f965527af1a8bd63f3aa68f4ee/AndroidManifest.xml:21:5-23:54
+MERGED from [com.android.support:support-v4:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v4-25.0.1.aar/eb3ca3f965527af1a8bd63f3aa68f4ee/AndroidManifest.xml:21:5-23:54
+MERGED from [com.android.support:cardview-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/cardview-v7-25.0.1.aar/12cb5a4b46f35c3ac0d2442bece61efc/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:cardview-v7:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/cardview-v7-25.0.1.aar/12cb5a4b46f35c3ac0d2442bece61efc/AndroidManifest.xml:20:5-43
+MERGED from [com.android.support:support-fragment:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-fragment-25.0.1.aar/e9617af68db6798fbada035b0a6ea646/AndroidManifest.xml:21:5-23:60
+MERGED from [com.android.support:support-fragment:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-fragment-25.0.1.aar/e9617af68db6798fbada035b0a6ea646/AndroidManifest.xml:21:5-23:60
+MERGED from [com.android.support:support-media-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.0.1.aar/1b8ee23bcf0e178ec0bbec3f486e125d/AndroidManifest.xml:21:5-23:63
+MERGED from [com.android.support:support-media-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-media-compat-25.0.1.aar/1b8ee23bcf0e178ec0bbec3f486e125d/AndroidManifest.xml:21:5-23:63
+MERGED from [com.android.support:support-core-utils:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.0.1.aar/360d04973101c875e81d2b3909adc149/AndroidManifest.xml:21:5-23:61
+MERGED from [com.android.support:support-core-utils:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-utils-25.0.1.aar/360d04973101c875e81d2b3909adc149/AndroidManifest.xml:21:5-23:61
+MERGED from [com.android.support:support-core-ui:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.0.1.aar/503604fbb0655f31a493e4662689c538/AndroidManifest.xml:21:5-23:58
+MERGED from [com.android.support:support-core-ui:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-core-ui-25.0.1.aar/503604fbb0655f31a493e4662689c538/AndroidManifest.xml:21:5-23:58
+MERGED from [com.android.support:animated-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.0.1.aar/8abc691697bc32a30f27fc04979c08f6/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:animated-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/animated-vector-drawable-25.0.1.aar/8abc691697bc32a30f27fc04979c08f6/AndroidManifest.xml:20:5-44
+MERGED from [com.android.support:support-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.0.1.aar/e847ee8886c4b157390c0fb9ad3e9f00/AndroidManifest.xml:21:5-43
+MERGED from [com.android.support:support-vector-drawable:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-vector-drawable-25.0.1.aar/e847ee8886c4b157390c0fb9ad3e9f00/AndroidManifest.xml:21:5-43
+MERGED from [com.android.support:support-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-compat-25.0.1.aar/f6f18ddff0f6b2faf6b943116ca8125e/AndroidManifest.xml:21:5-23:58
+MERGED from [com.android.support:support-compat:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-compat-25.0.1.aar/f6f18ddff0f6b2faf6b943116ca8125e/AndroidManifest.xml:21:5-23:58
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+	tools:overrideLibrary
+		ADDED from [com.android.support:support-v13:25.0.1] /home/angus/.gradle/caches/transforms-1/files-1.1/support-v13-25.0.1.aar/8116f52ecdd6d0db1c9b5f5246541721/AndroidManifest.xml:23:9-52
+	android:targetSdkVersion
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		ADDED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml
+		INJECTED from /home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/src/main/AndroidManifest.xml

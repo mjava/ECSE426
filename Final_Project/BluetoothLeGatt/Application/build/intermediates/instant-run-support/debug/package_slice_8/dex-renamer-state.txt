@@ -1,0 +1,4 @@
+#Mon Apr 09 15:08:43 EDT 2018
+base.0=/home/angus/workspace/ECSE426/ECSE426/Final_Project/BluetoothLeGatt/Application/build/intermediates/transforms/dexMerger/debug/8
+path.0=classes.dex
+renamed.0=classes.dex
