@@ -123,6 +123,10 @@
 #define PI 3.14159265358979323846
 #define TAP_DETECT_THRESH 100
 #define TAP_VALIDATE_THRESH 300
+#define TAPTIME 100 
+#define LATENCY 
+#define WINDOW 
+#define ACCEL_THRESHOLD 10
 extern volatile int tapTimerDetect;
 extern volatile int tapTimerValidate;
 

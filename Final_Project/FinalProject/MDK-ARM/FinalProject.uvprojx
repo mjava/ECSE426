@@ -336,7 +336,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F407xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;      ../Drivers/STM32F4xx_HAL_Driver/Inc;      ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;      ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;      ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Inc;        ../Drivers/STM32F4xx_HAL_Driver/Inc;        ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;        ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;        ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -416,14 +416,14 @@
               <FilePath>../Src/main.c</FilePath>
             </File>
             <File>
-              <FileName>fput_debug.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\FinalPrj\MDK-ARM\fput_debug.c</FilePath>
-            </File>
-            <File>
               <FileName>LIS3DSH.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\LIS3DSH.c</FilePath>
+            </File>
+            <File>
+              <FileName>fput_debug.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\LAB1\fput_debug.c</FilePath>
             </File>
           </Files>
         </Group>

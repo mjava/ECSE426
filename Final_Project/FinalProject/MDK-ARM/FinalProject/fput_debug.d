@@ -1,4 +1,4 @@
-finalproject\fput_debug.o: ..\..\..\..\FinalPrj\MDK-ARM\fput_debug.c
+finalproject\fput_debug.o: ..\..\..\LAB1\fput_debug.c
 finalproject\fput_debug.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 finalproject\fput_debug.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 finalproject\fput_debug.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h

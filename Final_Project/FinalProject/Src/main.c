@@ -48,6 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 UART_HandleTypeDef huart5;
@@ -83,6 +84,7 @@ float pitch, roll;
 int dataCollectionComplete = 0;
 int recording = 0;
 int recordingComplete = 0;
+uint32_t tapDetectSnapshot;
 
 const int audioDataBufferSize = 10000;
 uint8_t audioDataBuffer[audioDataBufferSize];
@@ -94,6 +96,7 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_UART5_Init(void);
+static void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -102,7 +105,7 @@ void initializeACC			(void);
 void FIR_C(uint32_t input, float* filterOutput);
 float pitchCalculation(float* accelerometerData);
 float rollCalculation(float* accelerometerData);
-void tapDetection(float* newData, float* previousData, float* initialData);
+int tapDetection(float* newData, float* previousData);
 
 /* USER CODE END PFP */
 
@@ -142,71 +145,47 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM3_Init();
   MX_UART5_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 	initializeACC	();	// Like any other peripheral, you need to initialize it. Refer to the its driver to learn more.
 	uint8_t header1[] = {0x0F};
 	uint8_t header2[] = {0xF0};
 	HAL_TIM_Base_Start(&htim3);
+	HAL_TIM_Base_Start(&htim2);
+	LIS3DSH_ReadACC(previousData);	//initial reading upon entry of program
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-
-//		if (MyFlag/200)
-//		{
-
-			//MyFlag = 0;
-			//Reading the accelerometer status register
-				LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
-				//The first four bits denote if we have new data on all axisValues axes, 
-		   	//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
-				if ((status & 0x0F) != 0x00)
-				{
-					LIS3DSH_ReadACC(initialData);
-//					accX = (float)Buffer[0];
-//					accY = (float)Buffer[1];
-//					accZ = (float)Buffer[2];
-//					printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
-				}
+  while (1){
 			
-			while(state == 0) {
-				//case 0:
+		switch(state) {
+				case 0:
 					printf("in state 0\n");
-					if(tapTimerDetect >= TAP_DETECT_THRESH) {
-						tapTimerDetect = 0;
-						
+
 						LIS3DSH_Read(&status, LIS3DSH_STATUS, 1);
 						
-						if ((status & 0x0F) != 0x00)
+						if ((status & 0x01) != 0x00)		//check to see if z-data has changed
 						{
-							LIS3DSH_ReadACC(previousData);
-						//	accX = (float)previousData[0];
-							//accY = (float)previousData[1];
-							accZ = (float)previousData[2];
+							LIS3DSH_ReadACC(newData);		//read new data
 							
-//							LIS3DSH_Read(&status, LIS3DSH_STATUS, 1);
-//							//printf("X: %4f     Y: %4f     Z: %4f \n", accX, accY, accZ);
-//							if ((status & 0x0F) != 0x00)
-//							{	
-								LIS3DSH_ReadACC(newData);
-							//	accX = (float)newData[0];
-								//accY = (float)newData[1];
-								accZ = (float)newData[2];
+							if(tapDetection(newData, previousData)){ //going above first threshold
 								
-								tapDetection(newData,previousData,initialData);
+								tapDetectSnapshot = HAL_GetTick();
+								*previousData = *newData;
+								LIS3DSH_ReadACC(newData);	
 								
-								//initialData[0] = previousData[0];
-								//initialData[1] = previousData[1];
-								initialData[2] = newData[2];
-								
-//								previousData[0] = newData[0];
-//								previousData[1] = newData[1];
-//								previousData[2] = newData[2];
-							//}
+								if(tapDetection(newData, previousData)){	//going below second threshold
+									
+									if(HAL_GetTick() - tapDetectSnapshot > TAPTIME){
+										numberOfTaps++;
+										*previousData = *newData;
+									}
+									
+								}
+							}
 						}
-					}
+
 					if(tapTimerValidate >= TAP_VALIDATE_THRESH) {
 						tapTimerValidate = 0;
 						if(numberOfTaps >= 2) {
@@ -219,9 +198,8 @@ int main(void)
 							numberOfTaps = 0;
 						}
 					}
-				}
-			while(state==1) {
-				//case 1:
+			
+				case 1:
 					printf("in state 1\n");
 					HAL_ADC_Start_IT(&hadc1);
 					recording = 1;
@@ -248,9 +226,8 @@ int main(void)
 					if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0 ) == SET) {
 						state = 0;
 					}
-				}
-				//case 2:
-				while(state == 2) {
+				
+				case 2:
 					printf("in state 2\n");
 					//turn on orange LED to indicate accelerometer data
 					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12 ,GPIO_PIN_RESET);
@@ -365,7 +342,7 @@ void SystemClock_Config(void)
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(SysTick_IRQn, 1, 1);
 }
 
 /* ADC1 init function */
@@ -402,7 +379,41 @@ static void MX_ADC1_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+}
 
+/* TIM2 init function */
+static void MX_TIM2_Init(void)
+{
+	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+	
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 10;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 8499;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+	
+	HAL_
 }
 
 /* TIM3 init function */
@@ -415,7 +426,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 0;
+  htim3.Init.Period = 10499;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
@@ -649,21 +660,17 @@ float rollCalculation(float* axisValues)
 	 * @param Takes in values axisValues, sets a flag if "tap" is found
    * @retval None
    */
-void tapDetection(float* currentAxis, float* previousAxis, float* initialAxis)
+int tapDetection(float* newAxis, float* previousAxis)	//new, previous, initial
 {
-
-	//float xDifference1 = (previousAxis[0] - initialAxis[0]);
-	//float yDifference1 = (previousAxis[1] - initialAxis[1]);
-	 zDifference1 = (initialAxis[2]-previousAxis[2]);
-	 zDifference2 = (currentAxis[2]-previousAxis[2]);
+  float zDifference = newAxis[2] - previousAxis[2];
 	
-	printf("z: %f\n", zDifference1);
-	if ((fabs)(zDifference1) >= 2.0 && (fabs)(zDifference2) >= 2.0)
-	{
-		numberOfTaps++;
-		printf("taps: %d\n", numberOfTaps);
+	printf("z: %f\n", zDifference);
+	
+	if ((fabs)(zDifference) >= ACCEL_THRESHOLD){
+		return 1;
 	}
-	
+	else 
+		return 0;
 }
 
 void initializeACC(void){
@@ -686,6 +693,16 @@ void initializeACC(void){
 	LIS3DSH_DataReadyInterruptConfig(&ACC_Interrupt_Config);
 	*/
 }
+
+//void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+//{
+//  /* Prevent unused argument(s) compilation warning */
+//	LIS3DSH_ReadACC(newData);
+//	printf("test");
+//  /* NOTE : This function Should not be modified, when the callback is needed,
+//            the __HAL_TIM_PeriodElapsedCallback could be implemented in the user file
+//   */
+//}
 
 /**
   * @brief  Retrive ADC conversion value and put through filter and RMS calculation

@@ -52,6 +52,7 @@ void PendSV_Handler(void);
 void SysTick_Handler(void);
 void EXTI0_IRQHandler(void);
 void ADC_IRQHandler(void);
+void TIM2_IRQHandler(void);
 void UART5_IRQHandler(void);
 
 #ifdef __cplusplus
