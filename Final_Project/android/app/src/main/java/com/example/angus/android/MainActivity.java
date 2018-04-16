@@ -9,6 +9,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.*;
 import java.io.*;
 
+import android.view.View;
+import android.widget.Button;
+
 public class MainActivity extends AppCompatActivity {
 
     FirebaseStorage storage = FirebaseStorage.getInstance();
@@ -21,11 +24,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        try {// because it throws an exception
-            uploadResource();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        initButtons();
+
+
+
+
+
+    }
+
+    void initButtons() {
+        final Button button = findViewById("uploadTestFile");
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // upload file
+                try {// because it throws an exception
+                    uploadResource();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
     }
 
     void uploadResource() throws IOException {
