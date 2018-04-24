@@ -48,8 +48,6 @@
 #include "bluenrg_utils.h"
 #include "usart.h"
 
-extern uint8_t rx_available(void);
-extern uint8_t rx_read_byte(void);
 extern uint32_t ms_counter;
 
 
@@ -81,7 +79,6 @@ uint8_t pitchRollBuffer[1];
 uint8_t pitchRollData[1000];
 uint8_t audioBuffer[1];
 uint8_t audioData[10000];
-uint32_t numElements;
 
 
 /**
@@ -291,73 +288,36 @@ int main(void)
 
   /* Set output power level */
   ret = aci_hal_set_tx_power_level(1,4);
-
 	uint8_t state = 0;
-	uint8_t prev = 0;
-	uint8_t temp = 0;
-	uint32_t index = 0;
-	uint8_t done = 0;
-	
-	/*
-	TODO: disable other services and characteristics.
-	
-	*/
   while(1)
-  {//0xAA 0x55 '\r' '\n'
-		//remove done dependency when only sending one file
-		
+  {//0x55 or 0x66
 		HAL_UART_Receive(&huart2, transferBuffer, 1, 1000);
-		printf("the value transbuffer is %x \n", transferBuffer[0]&0xFF);
-		
 			switch (state){
 				case IDLE:
 					if (transferBuffer[0] == 0x55){//start bytes
 						state = AUDIO_RECEIVE;
-						//memset buffer to get new recording	
-						//memset(uartBuffer, 0, 64000);
-						
-						index = 0;
-						numElements = 0;
 						printf("Receive Audio\n");
 					}	
 					if (transferBuffer[0] == 0x66){//start bytes
-						state = PITCH_ROLL_RECEIVE;
-						
-						//memset buffer to get new recording
-					//	memset(uartBuffer, 0, 64000);
-						
-						index = 0;
-						numElements = 0;
+						state = PITCH_ROLL_RECEIVE;					
 						printf("Receive pitch and roll\n");
 					}
 					break;
 					
 				case AUDIO_RECEIVE:
 						state = IDLE;
-				//for(int i = 0; i< 10000; i++){
 						HAL_UART_Receive(&huart2, audioData, 10000, 1000);
-					//	audioData[i] = audioBuffer;
-				//	printf("the iteration is: %d \n", i);
 						printf("the first value of audio is: %x \n", audioData[0]&0xFF);
-			//}
 						printf("Idle\n");
 						break;
 				case PITCH_ROLL_RECEIVE:
 						state = IDLE;
-			//	for(int i = 0; i < 1000; i++){
 						HAL_UART_Receive(&huart2, pitchRollData, 1000, 1000);
-						//pitchRollData[i] = pitchRollBuffer;
-					//printf("the iteration is: %d \n", i);
 						printf("the first value of pitch/roll is: %x \n", pitchRollData[0]&0xFF);
-						//printf("the last value of pitch/roll buffer is: %x \n", pitchRollBuffer[999]&0xFF);
-				//}
+					
 						printf("Idle\n");
 						break;
-						//number of elements is equal to the index -1 because of '\r'
 				}
-					//uartBuffer[index] = temp;
-					//index++;
-					
     HCI_Process();
 		User_Process(&axes_data);
 #if NEW_SERVICES
@@ -365,7 +325,6 @@ int main(void)
 #endif
   }
 }
-
 /**
  * @brief  Process user input (i.e. pressing the USER button on Nucleo board)
  *         and send the updated acceleration data to the remote client.
@@ -384,34 +343,14 @@ void User_Process(AxesRaw_t* p_axes)
   if(BSP_PB_GetState(BUTTON_KEY) == RESET)
   {
     while (BSP_PB_GetState(BUTTON_KEY) == RESET);
-    
-    //BSP_LED_Toggle(LED2); //used for debugging (BSP_LED_Init() above must be also enabled)
-    
-    if(connected)
-    {
-			
-			//send buffer to function
-			
-    Acc_Update(audioData, 10000);
-			
-    }
-  }
+			if(connected){
+					Acc_Update(audioData, 10000);
+			}
+	}
 }
 
 uint32_t HAL_GetTick() {
   return ms_counter;
 }
-	
-/**
- * @}
- */
- 
-/**
- * @}
- */
-
-/**
- * @}
- */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

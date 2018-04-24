@@ -57,14 +57,11 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-#define RX_BUFFER_SIZE 256
 volatile uint32_t ms_counter = 0;
 volatile uint8_t button_event = 0;
 
 extern UART_HandleTypeDef huart2;
-volatile uint8_t rx_buffer[RX_BUFFER_SIZE];
-volatile uint8_t buffer_head = 0;
-volatile uint8_t buffer_tail = 0;
+
 
 /* SPI handler declared in "main.c" file */
 extern SPI_HandleTypeDef SpiHandle;
@@ -76,40 +73,8 @@ extern SPI_HandleTypeDef SpiHandle;
 /******************************************************************************/
 
 
-uint8_t rx_available(){
-  if (buffer_head < buffer_tail) {
-    return ((buffer_head + 256) - buffer_tail);
-  } else {
-    return (buffer_head - buffer_tail);
-  }
-}
-
-uint8_t rx_read_byte() {
-  if (rx_available()) {
-    return rx_buffer[buffer_tail++];
-  }
-  return 0;
-}
-
-uint8_t prevVal = 0x00;
-
 void USART1_IRQHandler(void) {
-	printf("handler called\n");
-  if (__HAL_UART_GET_IT_SOURCE(&huart2, UART_IT_RXNE)){
-    __HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);
-    uint32_t state = huart2.State;
-    if((state == HAL_UART_STATE_READY) || (state == HAL_UART_STATE_BUSY_TX)){
-      uint8_t tmpUART = (uint8_t)(huart2.Instance->DR & (uint8_t)0x00FF);
-			if(tmpUART != prevVal) {
-				printf("Changed value is : %x \n", tmpUART);
-				prevVal = tmpUART;
-			}
-			rx_buffer[buffer_head] = tmpUART;
-      if (++buffer_head == buffer_tail){
-        buffer_tail++; // Perserve ringbuffer by drop one unread byte.
-      }
-    }
-  }
+	
 }
 
 /**
@@ -217,21 +182,6 @@ void PUSH_BUTTON_EXTI_IRQHandler(void)
   * @retval None
   */
 /*
-void PPP_IRQHandler(void)
-{
-}
-*/
 
-/**
- * @}
- */ 
-
-/**
- * @}
- */ 
-
-/**
- * @}
- */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

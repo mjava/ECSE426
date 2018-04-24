@@ -104,7 +104,6 @@ volatile int pitchRollTimer = 0;
 const int pitchRollDataBufferSize = 1000;
 uint8_t pitchDataBuffer [pitchRollDataBufferSize];
 uint8_t rollDataBuffer [pitchRollDataBufferSize];
-float accX, accY, accZ;
 
 //Tap Detect variables
 volatile int tapDetectTimer = 0;
@@ -128,16 +127,11 @@ int main(void)
 //  MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
-	// Step(1): Start the Timer as interrupt
 	HAL_TIM_Base_Start(&htim2);
 	HAL_ADC_Start_IT(&hadc1);
-	
 	TM_Delay_Init();
-	//initialize filter
 	for(int i = 0; i <10; ){
 		LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
-		//The first four bits denote if we have new data on all XYZ axes, 
-		//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
 		if ((status & 0x0F) != 0x00)
 		{
 			// read ACC
@@ -162,8 +156,6 @@ int main(void)
 				tapDetectTimer = 0;
 				//
 				LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
-				//The first four bits denote if we have new data on all XYZ axes, 
-				//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
 				if ((status & 0x0F) != 0x00)
 				{
 					//read ACC
@@ -210,45 +202,34 @@ int main(void)
 		while(systemState == ONE_TAP_STATE){
 
 			recording = 1;
-			ledTask(0); //green
-			
+			ledTask(0);
 			if(audioBufferCounter == audioDataBufferSize)
 			{
 				recording = 0;
 				audioBufferCounter = 0;
-				
-				//transmit
-				ledTask(1); // blue led showing transmitting
+				ledTask(1); 
 				uint8_t tempBuffer[] = {0xff, 0x66, 0xaa, 0x55};
 				transBuffer[0] = (uint8_t) 0x55;
 				printf("send data: %x\n", transBuffer[0]&0xFF);
-				HAL_UART_Transmit(&huart5, transBuffer, 1, 1000); // send signal to indicate voice data
+				HAL_UART_Transmit(&huart5, transBuffer, 1, 1000); 
 				while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
 				HAL_UART_Transmit(&huart5, audioDataBuffer, 10000, 1000);
 			  while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
 					
 				systemState = START_STATE;
 			}	
-			// if push button detected, go back to start state
-//			if(blueButtonPressed()){
-//				systemState = START_STATE;
-//			}
 		}
 		
 		while(systemState == TWO_TAP_STATE){
-			ledTask(2); // RED led showing TWO_TAP_STATE
+			ledTask(2); 
 			
-			// read accelerameter and calculate pitch and roll
 			for(int i=0; i< pitchRollDataBufferSize; )
 			{
 				if(pitchRollTimer >= PITCH_ROLL_PEROID)
 				{
-					
 					pitchRollTimer = 0;
-					
 					LIS3DSH_Read (&status, LIS3DSH_STATUS, 1);
-					//The first four bits denote if we have new data on all XYZ axes, 
-					//Z axis only, Y axis only or Z axis only. If any or all changed, proceed
+
 					if ((status & 0x0F) != 0x00)
 					{
 						// read ACC
@@ -258,8 +239,8 @@ int main(void)
 						float pitchOutput = pitchCalculation(accelerometerOutput);	
 						float rollOutput = rollCalculation(accelerometerOutput);
 						// save to buffer array
-						uint8_t anglePitch = (uint8_t)(pitchOutput + 90); // for display
-			      uint8_t angleRoll = (uint8_t)(rollOutput + 90); // for display
+						uint8_t anglePitch = (uint8_t)(pitchOutput + 90);
+			      uint8_t angleRoll = (uint8_t)(rollOutput + 90); 
 						pitchDataBuffer[i] = anglePitch;
 						rollDataBuffer[i] = angleRoll;
 						printf("pitch: %f, roll: %f \n", pitchOutput, rollOutput);
@@ -269,21 +250,13 @@ int main(void)
 				}
 			}
 			
-			// transmit
-			ledTask(1); // blue led showing transmitting
-			
-			// transmit pitch
+			ledTask(1); 
 				transBuffer[0] = 0x66;
 				HAL_UART_Transmit(&huart5, transBuffer, 1, 1000); // send signal to indicate pitch data
 				while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
-		//	for(int i=0; i< pitchRollDataBufferSize; i++)
-		//	{
-		//		transBuffer[0] = pitchDataBuffer[i];
 				HAL_UART_Transmit(&huart5, pitchDataBuffer, 1000, 1000);
 				while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
-			//}
-			
-				// transmit roll
+					
 				transBuffer[0] = 2;
 				HAL_UART_Transmit_IT(&huart5, transBuffer, 1); // send signal to indicate roll data
 				while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
@@ -293,18 +266,13 @@ int main(void)
 					HAL_UART_Transmit_IT(&huart5, transBuffer, 1);
 					while (HAL_UART_GetState(&huart5) != HAL_UART_STATE_READY){};
 				}
-			
 			systemState = START_STATE;
-			
 			//if push button detected, go back to start state
 			if(blueButtonPressed()){
 				systemState = START_STATE;
 			}
 		}
-		
   }
-
-
 }
 
 /** System Clock Configuration
@@ -906,12 +874,5 @@ void assert_failed(uint8_t* file, uint32_t line)
 
 #endif
 
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-*/ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

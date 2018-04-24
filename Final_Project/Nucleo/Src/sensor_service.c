@@ -211,9 +211,7 @@ struct AudioDataFrame {
  */
 tBleStatus Acc_Update(uint8_t uartBuf[], uint32_t numElements)
 {
-  //NEED TO WAIT FOR BUFFER TO FILL GPIOB PIN 8. Second from the top on right side.
   tBleStatus ret;
-
 	uint16_t index = 0;
 	const int BUFFER_LENGTH = numElements;
 	uint16_t end_index = 0;	
@@ -240,24 +238,6 @@ tBleStatus Acc_Update(uint8_t uartBuf[], uint32_t numElements)
   }
   return BLE_STATUS_SUCCESS;	
 }
-/*
-tBleStatus Acc_Update(AxesRaw_t *data)
-{  
-  tBleStatus ret;    
-  uint8_t buff[6];
-    
-  STORE_LE_16(buff,data->AXIS_X);
-  STORE_LE_16(buff+2,data->AXIS_Y);
-  STORE_LE_16(buff+4,data->AXIS_Z);
-	
-  ret = aci_gatt_update_char_value(accServHandle, accCharHandle, 0, 6, buff);
-	
-  if (ret != BLE_STATUS_SUCCESS){
-    PRINTF("Error while updating ACC characteristic.\n") ;
-    return BLE_STATUS_ERROR ;
-  }
-  return BLE_STATUS_SUCCESS;	
-}*/
 
 /**
  * @brief  Add the Environmental Sensor service.
