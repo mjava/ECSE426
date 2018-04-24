@@ -113,26 +113,27 @@
 #define MEMS_INT2_Pin GPIO_PIN_1
 #define MEMS_INT2_GPIO_Port GPIOE
 
-/* USER CODE BEGIN Private defines */
+/* USER CODE BEGIN */
 #define START_STATE 0
 #define ONE_TAP_STATE 1
 #define TWO_TAP_STATE 2
 
-#define GREEN		GPIO_PIN_12	// right
-#define ORANGE	GPIO_PIN_13	// down
-#define RED			GPIO_PIN_14	// left
-#define	BLUE		GPIO_PIN_15	// up
+#define GREEN		GPIO_PIN_12	
+#define ORANGE	GPIO_PIN_13	
+#define RED			GPIO_PIN_14	
+#define	BLUE		GPIO_PIN_15	
 
 #define PI		3.14159265
 
-#define TAP_DETECT_PERIOD 10 // 100Hz
-#define TAP_CHECK_PERIOD 1000 // 0.1Hz
-#define PITCH_ROLL_PEROID 10 // 100Hz
+#define TAP_DETECT_PERIOD 10 
+#define TAP_CHECK_PERIOD 1000 
+#define PITCH_ROLL_PEROID 10 
 
 extern volatile int tapDetectTimer;
 extern volatile int tapCheckTimer;
 extern volatile int pitchRollTimer;
 /* USER CODE END Private defines */
+/* Private function prototypes -----------------------------------------------*/
 
 void _Error_Handler(char *, int);
 

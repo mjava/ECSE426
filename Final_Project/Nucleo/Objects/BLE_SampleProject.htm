@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\Objects\BLE_SampleProject.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\Objects\BLE_SampleProject.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Sun Apr 15 23:52:41 2018
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060528: Last Updated: Mon Apr 16 13:20:36 2018
 <BR><P>
 <H3>Maximum Stack Usage =        984 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -688,27 +688,27 @@ Global Symbols
 <P><STRONG><a name="[80]"></a>freopen</STRONG> (Thumb, 158 bytes, Stack size 24 bytes, fopen.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 132<LI>Call Chain = freopen &rArr; _fclose_internal &rArr; _fflush &rArr; _writebuf &rArr; _sys_write &rArr; stdout_putchar
 </UL>
-<BR>[Calls]<UL><LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fseek
-<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fclose_internal
+<BR>[Calls]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fclose_internal
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_open
+<LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fseek
 </UL>
 <BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;fopen
 <LI><a href="#[5f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_initio
 </UL>
 
 <P><STRONG><a name="[89]"></a>fopen</STRONG> (Thumb, 74 bytes, Stack size 24 bytes, fopen.o(.text), UNUSED)
-<BR><BR>[Calls]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
-<LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;freopen
+<BR><BR>[Calls]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;freopen
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 </UL>
 
 <P><STRONG><a name="[83]"></a>_fclose_internal</STRONG> (Thumb, 76 bytes, Stack size 32 bytes, fclose.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 108<LI>Call Chain = _fclose_internal &rArr; _fflush &rArr; _writebuf &rArr; _sys_write &rArr; stdout_putchar
 </UL>
-<BR>[Calls]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fflush
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
 <LI><a href="#[7f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memclr4
 <LI><a href="#[8c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_close
+<LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fflush
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;freopen
 <LI><a href="#[61]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_terminateio
@@ -743,9 +743,9 @@ Global Symbols
 <P><STRONG><a name="[136]"></a>__user_perthread_libspace</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, libspace.o(.text), UNUSED)
 
 <P><STRONG><a name="[86]"></a>__rt_heap_descriptor</STRONG> (Thumb, 8 bytes, Stack size 0 bytes, rt_heap_descriptor_intlibspace.o(.text))
-<BR><BR>[Called By]<UL><LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
+<BR><BR>[Called By]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
+<LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_init_alloc
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
 </UL>
 
 <P><STRONG><a name="[137]"></a>__use_no_heap</STRONG> (Thumb, 2 bytes, Stack size 0 bytes, hguard.o(.text), UNUSED)
@@ -769,10 +769,10 @@ Global Symbols
 <P><STRONG><a name="[5d]"></a>_init_alloc</STRONG> (Thumb, 94 bytes, Stack size 24 bytes, init_alloc.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = _init_alloc &rArr; __rt_SIGRTMEM &rArr; __rt_SIGRTMEM_inner &rArr; __default_signal_display &rArr; _ttywrch
 </UL>
-<BR>[Calls]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_heap_descriptor
-<LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__Heap_ProvideMemory
+<BR>[Calls]<UL><LI><a href="#[91]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__Heap_ProvideMemory
 <LI><a href="#[94]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__Heap_Initialize
 <LI><a href="#[93]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_SIGRTMEM
+<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_heap_descriptor
 </UL>
 <BR>[Called By]<UL><LI><a href="#[5c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__rt_lib_init_heap_2
 </UL>
@@ -787,10 +787,10 @@ Global Symbols
 <P><STRONG><a name="[88]"></a>_fseek</STRONG> (Thumb, 242 bytes, Stack size 24 bytes, fseek.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 32<LI>Call Chain = _fseek &rArr; _ftell_internal
 </UL>
-<BR>[Calls]<UL><LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_seterr
-<LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_istty
+<BR>[Calls]<UL><LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_istty
 <LI><a href="#[97]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_flen
 <LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_ftell_internal
+<LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_seterr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;freopen
 </UL>
@@ -805,9 +805,9 @@ Global Symbols
 <P><STRONG><a name="[99]"></a>_writebuf</STRONG> (Thumb, 84 bytes, Stack size 32 bytes, stdio.o(.text))
 <BR><BR>[Stack]<UL><LI>Max Depth = 60<LI>Call Chain = _writebuf &rArr; _sys_write &rArr; stdout_putchar
 </UL>
-<BR>[Calls]<UL><LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_seterr
-<LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_write
+<BR>[Calls]<UL><LI><a href="#[9b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_write
 <LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_sys_seek
+<LI><a href="#[98]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_seterr
 </UL>
 <BR>[Called By]<UL><LI><a href="#[8b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fflush
 </UL>
@@ -817,8 +817,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[99]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_writebuf
 </UL>
-<BR>[Called By]<UL><LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_deferredlazyseek
-<LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fclose_internal
+<BR>[Called By]<UL><LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fclose_internal
+<LI><a href="#[9c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_deferredlazyseek
 </UL>
 
 <P><STRONG><a name="[9c]"></a>_deferredlazyseek</STRONG> (Thumb, 60 bytes, Stack size 8 bytes, stdio.o(.text), UNUSED)
@@ -996,8 +996,8 @@ Global Symbols
 <P><STRONG><a name="[b3]"></a>BSP_PB_Init</STRONG> (Thumb, 134 bytes, Stack size 40 bytes, stm32f4xx_nucleo.o(i.BSP_PB_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 88<LI>Call Chain = BSP_PB_Init &rArr; HAL_NVIC_SetPriority &rArr; NVIC_SetPriority
 </UL>
-<BR>[Calls]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
-<LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<BR>[Calls]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
 </UL>
 <BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
@@ -1034,13 +1034,13 @@ Global Symbols
 <P><STRONG><a name="[ba]"></a>BlueNRG_SPI_Write</STRONG> (Thumb, 176 bytes, Stack size 312 bytes, stm32_bluenrg_ble.o(i.BlueNRG_SPI_Write))
 <BR><BR>[Stack]<UL><LI>Max Depth = 376<LI>Call Chain = BlueNRG_SPI_Write &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitOnFlagUntilTimeout
 </UL>
-<BR>[Calls]<UL><LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_irq_as_output
+<BR>[Calls]<UL><LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enable_SPI_IRQ
+<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Disable_SPI_IRQ
+<LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_irq_as_output
 <LI><a href="#[be]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_irq_as_input
 <LI><a href="#[bd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;us150Delay
 <LI><a href="#[b9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SPI_TransmitReceive
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
-<LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enable_SPI_IRQ
-<LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Disable_SPI_IRQ
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Hal_Write_Serial
 </UL>
@@ -1067,8 +1067,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[c2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_DisableIRQ
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
-<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_req
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 </UL>
 
 <P><STRONG><a name="[19]"></a>EXTI0_IRQHandler</STRONG> (Thumb, 10 bytes, Stack size 8 bytes, stm32xx_it.o(i.EXTI0_IRQHandler))
@@ -1091,8 +1091,8 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
 </UL>
 <BR>[Called By]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
-<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_req
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 </UL>
 
 <P><STRONG><a name="[c4]"></a>GAP_ConnectionComplete_CB</STRONG> (Thumb, 50 bytes, Stack size 16 bytes, sensor_service.o(i.GAP_ConnectionComplete_CB))
@@ -1162,10 +1162,10 @@ Global Symbols
 <P><STRONG><a name="[af]"></a>HAL_GPIO_WritePin</STRONG> (Thumb, 12 bytes, Stack size 0 bytes, stm32f4xx_hal_gpio.o(i.HAL_GPIO_WritePin))
 <BR><BR>[Called By]<UL><LI><a href="#[b7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_RST
 <LI><a href="#[ad]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_LED_Init
+<LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Read_All
 <LI><a href="#[bc]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;set_irq_as_output
 <LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SPI_MspInit
 <LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
-<LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Read_All
 </UL>
 
 <P><STRONG><a name="[c1]"></a>HAL_GetTick</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, main.o(i.HAL_GetTick))
@@ -1184,9 +1184,9 @@ Global Symbols
 <P><STRONG><a name="[c8]"></a>HAL_Init</STRONG> (Thumb, 54 bytes, Stack size 8 bytes, stm32f4xx_hal.o(i.HAL_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = HAL_Init &rArr; HAL_InitTick &rArr; HAL_NVIC_SetPriority &rArr; NVIC_SetPriority
 </UL>
-<BR>[Calls]<UL><LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_MspInit
-<LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_InitTick
+<BR>[Calls]<UL><LI><a href="#[ca]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_InitTick
 <LI><a href="#[c9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriorityGrouping
+<LI><a href="#[cb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_MspInit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1212,8 +1212,8 @@ Global Symbols
 
 <P><STRONG><a name="[b5]"></a>HAL_NVIC_EnableIRQ</STRONG> (Thumb, 26 bytes, Stack size 0 bytes, stm32f4xx_hal_cortex.o(i.HAL_NVIC_EnableIRQ))
 <BR><BR>[Called By]<UL><LI><a href="#[b3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BSP_PB_Init
-<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SPI_MspInit
 <LI><a href="#[bf]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Enable_SPI_IRQ
+<LI><a href="#[d5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_SPI_MspInit
 </UL>
 
 <P><STRONG><a name="[b4]"></a>HAL_NVIC_SetPriority</STRONG> (Thumb, 124 bytes, Stack size 40 bytes, stm32f4xx_hal_cortex.o(i.HAL_NVIC_SetPriority))
@@ -1294,8 +1294,8 @@ Global Symbols
 <P><STRONG><a name="[d5]"></a>HAL_SPI_MspInit</STRONG> (Thumb, 410 bytes, Stack size 32 bytes, stm32_bluenrg_ble.o(i.HAL_SPI_MspInit))
 <BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = HAL_SPI_MspInit &rArr; HAL_NVIC_SetPriority &rArr; NVIC_SetPriority
 </UL>
-<BR>[Calls]<UL><LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
-<LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<BR>[Calls]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
 <LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_EnableIRQ
 <LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_WritePin
 </UL>
@@ -1307,8 +1307,8 @@ Global Symbols
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SPI_WaitOnFlagUntilTimeout
 </UL>
-<BR>[Called By]<UL><LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
-<LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Read_All
+<BR>[Called By]<UL><LI><a href="#[b8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Read_All
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 </UL>
 
 <P><STRONG><a name="[ef]"></a>HAL_SYSTICK_CLKSourceConfig</STRONG> (Thumb, 40 bytes, Stack size 0 bytes, stm32f4xx_hal_cortex.o(i.HAL_SYSTICK_CLKSourceConfig))
@@ -1327,8 +1327,8 @@ Global Symbols
 <P><STRONG><a name="[d7]"></a>HAL_UART_Init</STRONG> (Thumb, 110 bytes, Stack size 8 bytes, stm32f4xx_hal_uart.o(i.HAL_UART_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = HAL_UART_Init &rArr; UART_SetConfig &rArr; HAL_RCC_GetPCLK2Freq &rArr; HAL_RCC_GetHCLKFreq &rArr; HAL_RCC_GetSysClockFreq
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_MspInit
-<LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_SetConfig
+<BR>[Calls]<UL><LI><a href="#[d9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UART_SetConfig
+<LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_MspInit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[ea]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;MX_USART2_UART_Init
 </UL>
@@ -1421,8 +1421,8 @@ Global Symbols
 <BR><BR>[Stack]<UL><LI>Max Depth = 416<LI>Call Chain = Hal_Write_Serial &rArr; BlueNRG_SPI_Write &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitOnFlagUntilTimeout
 </UL>
 <BR>[Calls]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Timer_Set
-<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 <LI><a href="#[e9]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Timer_Expired
+<LI><a href="#[ba]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;BlueNRG_SPI_Write
 </UL>
 <BR>[Called By]<UL><LI><a href="#[100]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_write
 </UL>
@@ -1437,9 +1437,9 @@ Global Symbols
 <P><STRONG><a name="[ea]"></a>MX_USART2_UART_Init</STRONG> (Thumb, 234 bytes, Stack size 32 bytes, usart.o(i.MX_USART2_UART_Init))
 <BR><BR>[Stack]<UL><LI>Max Depth = 96<LI>Call Chain = MX_USART2_UART_Init &rArr; HAL_UART_Init &rArr; UART_SetConfig &rArr; HAL_RCC_GetPCLK2Freq &rArr; HAL_RCC_GetHCLKFreq &rArr; HAL_RCC_GetSysClockFreq
 </UL>
-<BR>[Calls]<UL><LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Init
+<BR>[Calls]<UL><LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_UART_Init
 <LI><a href="#[ae]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_Init
-<LI><a href="#[b4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_NVIC_SetPriority
 </UL>
 <BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
@@ -1743,8 +1743,7 @@ Global Symbols
 <P><STRONG><a name="[f5]"></a>hci_send_req</STRONG> (Thumb, 428 bytes, Stack size 72 bytes, hci.o(i.hci_send_req))
 <BR><BR>[Stack]<UL><LI>Max Depth = 544<LI>Call Chain = hci_send_req &rArr; hci_send_cmd &rArr; hci_write &rArr; Hal_Write_Serial &rArr; BlueNRG_SPI_Write &rArr; HAL_SPI_TransmitReceive &rArr; SPI_WaitOnFlagUntilTimeout
 </UL>
-<BR>[Calls]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
-<LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Timer_Set
+<BR>[Calls]<UL><LI><a href="#[e8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Timer_Set
 <LI><a href="#[eb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Osal_MemCpy
 <LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_head
 <LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_is_empty
@@ -1756,6 +1755,7 @@ Global Symbols
 <LI><a href="#[bb]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Disable_SPI_IRQ
 <LI><a href="#[ff]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_cmd
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Queue_Empty
+<LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
 </UL>
 <BR>[Called By]<UL><LI><a href="#[fe]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_le_set_scan_resp_data
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;aci_gatt_add_serv
@@ -1800,11 +1800,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_PRIMASK
 <LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__get_PRIMASK
 </UL>
-<BR>[Called By]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
-<LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
+<BR>[Called By]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
 <LI><a href="#[dd]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Init
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Isr
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_req
+<LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
 </UL>
 
 <P><STRONG><a name="[e1]"></a>list_is_empty</STRONG> (Thumb, 34 bytes, Stack size 16 bytes, list.o(i.list_is_empty))
@@ -1813,11 +1813,11 @@ Global Symbols
 <BR>[Calls]<UL><LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_PRIMASK
 <LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__get_PRIMASK
 </UL>
-<BR>[Called By]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
-<LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
+<BR>[Called By]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Isr
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_req
 <LI><a href="#[e6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Queue_Empty
+<LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
 </UL>
 
 <P><STRONG><a name="[e2]"></a>list_remove_head</STRONG> (Thumb, 42 bytes, Stack size 16 bytes, list.o(i.list_remove_head))
@@ -1827,10 +1827,10 @@ Global Symbols
 <LI><a href="#[103]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__set_PRIMASK
 <LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__get_PRIMASK
 </UL>
-<BR>[Called By]<UL><LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
-<LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
+<BR>[Called By]<UL><LI><a href="#[e5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Process
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HCI_Isr
 <LI><a href="#[f5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;hci_send_req
+<LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;move_list
 </UL>
 
 <P><STRONG><a name="[104]"></a>list_remove_node</STRONG> (Thumb, 32 bytes, Stack size 16 bytes, list.o(i.list_remove_node))
@@ -1924,19 +1924,19 @@ Local Symbols
 </UL>
 
 <P><STRONG><a name="[102]"></a>__get_PRIMASK</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, list.o(i.__get_PRIMASK))
-<BR><BR>[Called By]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_node
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_head
+<BR><BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_head
 <LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_is_empty
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_insert_tail
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_insert_head
+<LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_node
 </UL>
 
 <P><STRONG><a name="[103]"></a>__set_PRIMASK</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, list.o(i.__set_PRIMASK))
-<BR><BR>[Called By]<UL><LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_node
-<LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_head
+<BR><BR>[Called By]<UL><LI><a href="#[e2]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_head
 <LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_is_empty
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_insert_tail
 <LI><a href="#[e4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_insert_head
+<LI><a href="#[104]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;list_remove_node
 </UL>
 
 <P><STRONG><a name="[bd]"></a>us150Delay</STRONG> (Thumb, 28 bytes, Stack size 8 bytes, stm32_bluenrg_ble.o(i.us150Delay))

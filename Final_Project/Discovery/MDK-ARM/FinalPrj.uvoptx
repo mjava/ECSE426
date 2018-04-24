@@ -150,9 +150,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>695</LineNumber>
+          <LineNumber>662</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134220998</Address>
+          <Address>134235842</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -161,7 +161,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>../Src/main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\FinalPrj\../Src/main.c\695</Expression>
+          <Expression>\\FinalPrj\../Src/main.c\662</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -184,6 +184,26 @@
           <count>3</count>
           <WinNumber>1</WinNumber>
           <ItemText>audioDataBuffer</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>tapPeriod</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>tapTimes</ItemText>
+        </Ww>
+        <Ww>
+          <count>6</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>numberOfTaps</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>detectDelay</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
