@@ -167,70 +167,55 @@ public class Service_BTLE_GATT extends Service {
                 createFile(mRecordingState, array);
             }else{
                 mRecordingState = STATE_STANDBY;
-                createNewWaveFile();
                 uploadFile();
             }
 
         }
         //Creates file in a local storage
         public void createFile(int state, byte[] array){
-            if(state == Service_BTLE_GATT.STATE_STANDBY){
+            if(state == Service_BTLE_GATT.STATE_CREATEFILE){
+                fileNum =  new Random().nextInt(500);
+                file = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_DOCUMENTS), "myfile");
 
-            }else if(state == Service_BTLE_GATT.STATE_UPLOAD){
-                uploadFile();
-            }else {
-                if(state == Service_BTLE_GATT.STATE_CREATEFILE){
-                    fileNum =  new Random().nextInt(500);
+                    Log.i(TAG, "TAG6 - creating file yoo");
+
+                    StorageReference ourFileRef = mStorageRef.child("ECSE426/" + fileNum + ".wav");
+                    UploadTask uploadTask = ourFileRef.putBytes(array);
+                    uploadTask.addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception exception) {
+                            // Handle unsuccessful uploads
+                            Log.i(TAG, "TAG6 - I failed in uploading the file :(");
+                            fileBuffer = new byte[0];
+                        }
+                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>(){
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                            Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                            Log.i(TAG, "TAG6 - Successfuly uploaded the file");
+                            fileBuffer = new byte[0];
+                        }
+                    });
+
+
+            }else{
+                if(file == null) {
                     file = new File(Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_DOCUMENTS), "myfile");
-
-                        Log.i(TAG, "TAG6 - creating file yoo");
-
-                        StorageReference ourFileRef = mStorageRef.child("ECSE426/" + fileNum + ".wav");
-                        UploadTask uploadTask = ourFileRef.putBytes(array);
-                        uploadTask.addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception exception) {
-                                // Handle unsuccessful uploads
-                                Log.i(TAG, "TAG6 - I failed in uploading the file :(");
-                                fileBuffer = new byte[0];
-                            }
-                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>(){
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                                Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                                Log.i(TAG, "TAG6 - Successfuly uploaded the file");
-                                fileBuffer = new byte[0];
-                            }
-                        });
-
-                        // if(!file.createNewFile()){
-                        //     Log.i(TAG, "TAG7 - delete file");
-                        //     file.delete();
-                        //     file.createNewFile();
-                        // } else {
-                        //   Log.i(TAG, "TAG8 - uploading file");
-                        //   uploadFile();
-                        // }
-
-                }else{
-                    if(file == null) {
-                        file = new File(Environment.getExternalStoragePublicDirectory(
-                                Environment.DIRECTORY_DOCUMENTS), "myfile");
-                    }
-
                 }
 
-                try {
-                    FileOutputStream outStream = new FileOutputStream(file, true);
-                    DataOutputStream outStreamWriter = new DataOutputStream(outStream);
+            }
 
-                    outStreamWriter.write(array,0,array.length);
-                    outStreamWriter.flush();
-                } catch (Exception e) {
+            try {
+                FileOutputStream outStream = new FileOutputStream(file, true);
+                DataOutputStream outStreamWriter = new DataOutputStream(outStream);
 
-                }
+                outStreamWriter.write(array,0,array.length);
+                outStreamWriter.flush();
+            } catch (Exception e) {
+
             }
         }
 
@@ -244,35 +229,6 @@ public class Service_BTLE_GATT extends Service {
           },
           1000
           );
-        }
-
-        //Creates the Wave file from 8 bits PCM file
-        public void createNewWaveFile(){
-            Snackbar.make(coordinatorLayout, "Create Wave File", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            byte[] data = getByte(file);
-            fileNum =  new Random().nextInt(500);
-            file = new File(Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOCUMENTS), "myfile" + fileNum + ".wav");
-            try {
-                Log.i(TAG, "TAG - creating wav file");
-                if(!file.createNewFile()){
-                    file.delete();
-                    file.createNewFile();
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                FileOutputStream outStream = new FileOutputStream(file, true);
-                DataOutputStream outStreamWriter = new DataOutputStream(outStream);
-
-                PCMtoFile(outStream,data,8000,1,8);
-            } catch (Exception e) {
-
-            }
         }
 
         //Retrieves file from your android device
@@ -332,62 +288,6 @@ public class Service_BTLE_GATT extends Service {
                 }
             }
             return result;
-        }
-
-        //Add the Wave file header to the PCM file
-        public void PCMtoFile(OutputStream os, byte[] data, int srate, int channel, int format) throws IOException {
-            byte[] header = new byte[44];
-
-            long totalDataLen = data.length + 36;
-            long bitrate = srate * channel * format;
-
-            header[0] = 'R';
-            header[1] = 'I';
-            header[2] = 'F';
-            header[3] = 'F';
-            header[4] = (byte) (totalDataLen & 0xff);
-            header[5] = (byte) ((totalDataLen >> 8) & 0xff);
-            header[6] = (byte) ((totalDataLen >> 16) & 0xff);
-            header[7] = (byte) ((totalDataLen >> 24) & 0xff);
-            header[8] = 'W';
-            header[9] = 'A';
-            header[10] = 'V';
-            header[11] = 'E';
-            header[12] = 'f';
-            header[13] = 'm';
-            header[14] = 't';
-            header[15] = ' ';
-            header[16] = 16;
-            header[17] = 0;
-            header[18] = 0;
-            header[19] = 0;
-            header[20] = 1;
-            header[21] = 0;
-            header[22] = (byte) channel;
-            header[23] = 0;
-            header[24] = (byte) (srate & 0xff);
-            header[25] = (byte) ((srate >> 8) & 0xff);
-            header[26] = (byte) ((srate >> 16) & 0xff);
-            header[27] = (byte) ((srate >> 24) & 0xff);
-            header[28] = (byte) ((bitrate / 8) & 0xff);
-            header[29] = (byte) (((bitrate / 8) >> 8) & 0xff);
-            header[30] = (byte) (((bitrate / 8) >> 16) & 0xff);
-            header[31] = (byte) (((bitrate / 8) >> 24) & 0xff);
-            header[32] = (byte) ((channel * format) / 8);
-            header[33] = 0;
-            header[34] = 8;
-            header[35] = 0;
-            header[36] = 'd';
-            header[37] = 'a';
-            header[38] = 't';
-            header[39] = 'a';
-            header[40] = (byte) (data.length  & 0xff);
-            header[41] = (byte) ((data.length >> 8) & 0xff);
-            header[42] = (byte) ((data.length >> 16) & 0xff);
-            header[43] = (byte) ((data.length >> 24) & 0xff);
-            os.write(header, 0, 44);
-            os.write(data);
-            os.close();
         }
 
         //Upload file to Firebase
